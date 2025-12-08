@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { WalletState } from '../types';
 
-const DEMO_MODE = true; // Set to false when using real Cardano wallets
+const DEMO_MODE = true; // Keep true for demo (real Cardano wallets require blockchain connection)
 
 export const useWallet = () => {
   const [wallet, setWallet] = useState<WalletState>({

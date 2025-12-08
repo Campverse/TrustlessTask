@@ -3,7 +3,7 @@ import type { Project, CreateProjectRequest, UserProfile, Dispute } from '../typ
 import { mockProjects, mockUserProfile } from './mockData';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
-const USE_MOCK_DATA = true; // Set to false when backend is running
+const USE_MOCK_DATA = false; // Real backend API enabled
 
 const api = axios.create({
   baseURL: API_BASE_URL,
