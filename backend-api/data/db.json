@@ -20,6 +20,27 @@
           "approved": false
         }
       ]
+    },
+    {
+      "id": "ac04e9d7-1ef7-4d54-b983-669aae0550ec",
+      "title": "Test Project",
+      "description": "Testing",
+      "clientAddress": "addr_test1",
+      "freelancerAddress": "addr_test2",
+      "totalAmount": 1000000000,
+      "status": "Created",
+      "createdAt": "2025-12-08T22:17:40.451Z",
+      "txHash": "tx_1765232260451_yg1e293vx",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "Milestone 1",
+          "amount": 1000000000,
+          "deadline": "2025-12-31T23:59:59Z",
+          "completed": false,
+          "approved": false
+        }
+      ]
     }
   ],
   "users": [

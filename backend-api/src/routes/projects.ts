@@ -22,11 +22,22 @@ const createProjectSchema = z.object({
 
 router.post('/', async (req, res) => {
   try {
+    console.log('📥 Received project creation request:', JSON.stringify(req.body, null, 2));
     const data = createProjectSchema.parse(req.body);
+    console.log('✅ Validation passed, creating project...');
     const project = await ProjectModel.create(data);
+    console.log('✅ Project created:', project.id);
     res.status(201).json(project);
   } catch (error) {
-    res.status(400).json({ error: 'Invalid request data' });
+    console.error('❌ Error creating project:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    res.status(400).json({ 
+      error: 'Invalid request data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 

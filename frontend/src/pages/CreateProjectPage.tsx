@@ -15,7 +15,13 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({ wallet }) 
   const createMutation = useMutation({
     mutationFn: projectsApi.create,
     onSuccess: (project) => {
+      console.log('✅ Project created successfully:', project);
+      alert(`Project "${project.title}" created successfully!`);
       navigate(`/project/${project.id}`);
+    },
+    onError: (error: any) => {
+      console.error('❌ Error creating project:', error);
+      console.error('Error details:', error.response?.data || error.message);
     },
   });
 
@@ -34,7 +40,10 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({ wallet }) 
       <div className="bg-white rounded-lg shadow-md p-8">
         <CreateProjectForm
           clientAddress={wallet.address!}
-          onSubmit={(data: CreateProjectRequest) => createMutation.mutate(data)}
+          onSubmit={(data: CreateProjectRequest) => {
+            console.log('📤 Submitting project:', data);
+            createMutation.mutate(data);
+          }}
         />
       </div>
 
@@ -46,7 +55,21 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({ wallet }) 
 
       {createMutation.isError && (
         <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-lg">
-          Error creating project. Please try again.
+          <div className="font-semibold mb-2">Error creating project</div>
+          <div className="text-sm">
+            {createMutation.error instanceof Error 
+              ? createMutation.error.message 
+              : 'Unknown error occurred. Please check console for details.'}
+          </div>
+          <div className="text-xs mt-2">
+            Check browser console (F12) for more details.
+          </div>
+        </div>
+      )}
+
+      {createMutation.isSuccess && (
+        <div className="mt-4 p-4 bg-green-100 text-green-700 rounded-lg">
+          ✅ Project created successfully! Redirecting...
         </div>
       )}
     </div>

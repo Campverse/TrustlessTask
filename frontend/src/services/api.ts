@@ -39,8 +39,18 @@ export const projectsApi = {
       mockProjects.push(newProject);
       return newProject;
     }
-    const response = await api.post('/projects', data);
-    return response.data;
+    
+    console.log('📤 Sending to API:', API_BASE_URL + '/projects');
+    console.log('📦 Data:', JSON.stringify(data, null, 2));
+    
+    try {
+      const response = await api.post('/projects', data);
+      console.log('✅ API Response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ API Error:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   list: async (): Promise<Project[]> => {

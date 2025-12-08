@@ -37,6 +37,24 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onSubmit, 
     
     const totalAmount = milestones.reduce((sum, m) => sum + m.amount, 0);
     
+    // Validate milestones
+    if (milestones.length === 0) {
+      alert('Please add at least one milestone');
+      return;
+    }
+
+    if (milestones.some(m => !m.description || m.amount <= 0 || !m.deadline)) {
+      alert('Please fill in all milestone fields');
+      return;
+    }
+
+    console.log('📋 Form data:', {
+      ...formData,
+      clientAddress,
+      totalAmount,
+      milestones,
+    });
+    
     onSubmit({
       ...formData,
       clientAddress,

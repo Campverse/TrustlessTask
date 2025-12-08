@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useWallet } from './hooks/useWallet';
@@ -6,6 +5,7 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { CreateProjectPage } from './pages/CreateProjectPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { WalletDetector } from './components/WalletDetector';
 
 const queryClient = new QueryClient();
 
@@ -53,12 +53,39 @@ function App() {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => connectWallet('nami')}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                      Connect Wallet
-                    </button>
+                    <div className="relative group">
+                      <button
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      >
+                        Connect Wallet
+                      </button>
+                      <div className="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                        <button
+                          onClick={() => connectWallet('nami')}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                          Nami
+                        </button>
+                        <button
+                          onClick={() => connectWallet('lace')}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                          Lace
+                        </button>
+                        <button
+                          onClick={() => connectWallet('eternl')}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                          Eternl
+                        </button>
+                        <button
+                          onClick={() => connectWallet('flint')}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                          Flint
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -74,6 +101,8 @@ function App() {
               <Route path="/profile" element={<ProfilePage wallet={wallet} />} />
             </Routes>
           </main>
+
+          <WalletDetector />
         </div>
       </BrowserRouter>
     </QueryClientProvider>
