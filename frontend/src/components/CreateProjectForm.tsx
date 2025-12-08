@@ -1,0 +1,159 @@
+import React, { useState } from 'react';
+import type { CreateProjectRequest, MilestoneRequest } from '../types';
+
+interface CreateProjectFormProps {
+  onSubmit: (data: CreateProjectRequest) => void;
+  clientAddress: string;
+}
+
+export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onSubmit, clientAddress }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    freelancerAddress: '',
+    arbiterAddress: '',
+  });
+
+  const [milestones, setMilestones] = useState<MilestoneRequest[]>([
+    { description: '', amount: 0, deadline: '' }
+  ]);
+
+  const addMilestone = () => {
+    setMilestones([...milestones, { description: '', amount: 0, deadline: '' }]);
+  };
+
+  const updateMilestone = (index: number, field: keyof MilestoneRequest, value: any) => {
+    const updated = [...milestones];
+    updated[index] = { ...updated[index], [field]: value };
+    setMilestones(updated);
+  };
+
+  const removeMilestone = (index: number) => {
+    setMilestones(milestones.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const totalAmount = milestones.reduce((sum, m) => sum + m.amount, 0);
+    
+    onSubmit({
+      ...formData,
+      clientAddress,
+      totalAmount,
+      milestones,
+      arbiterAddress: formData.arbiterAddress || undefined,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium mb-2">Project Title</label>
+        <input
+          type="text"
+          required
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Description</label>
+        <textarea
+          required
+          rows={4}
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Freelancer Address</label>
+        <input
+          type="text"
+          required
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          value={formData.freelancerAddress}
+          onChange={(e) => setFormData({ ...formData, freelancerAddress: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Arbiter Address (Optional)</label>
+        <input
+          type="text"
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          value={formData.arbiterAddress}
+          onChange={(e) => setFormData({ ...formData, arbiterAddress: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Milestones</h3>
+          <button
+            type="button"
+            onClick={addMilestone}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Add Milestone
+          </button>
+        </div>
+
+        {milestones.map((milestone, index) => (
+          <div key={index} className="border rounded-lg p-4 mb-4">
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="font-medium">Milestone {index + 1}</h4>
+              {milestones.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeMilestone(index)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Description"
+                required
+                className="w-full px-3 py-2 border rounded"
+                value={milestone.description}
+                onChange={(e) => updateMilestone(index, 'description', e.target.value)}
+              />
+              <input
+                type="number"
+                placeholder="Amount (lovelace)"
+                required
+                min="1000000"
+                className="w-full px-3 py-2 border rounded"
+                value={milestone.amount || ''}
+                onChange={(e) => updateMilestone(index, 'amount', parseInt(e.target.value))}
+              />
+              <input
+                type="datetime-local"
+                required
+                className="w-full px-3 py-2 border rounded"
+                value={milestone.deadline}
+                onChange={(e) => updateMilestone(index, 'deadline', e.target.value)}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="submit"
+        className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+      >
+        Create Project
+      </button>
+    </form>
+  );
+};

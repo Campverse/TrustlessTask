@@ -1,0 +1,63 @@
+cabal-version: 3.0
+name: trustless-task-contracts
+version: 0.1.0.0
+synopsis: Plutus smart contracts for TrustlessTask marketplace
+license: MIT
+author: TrustlessTask Team
+maintainer: team@trustlesstask.io
+build-type: Simple
+
+common common-all
+  default-language: Haskell2010
+  ghc-options:
+    -Wall
+    -Wcompat
+    -Wincomplete-uni-patterns
+    -Wincomplete-record-updates
+    -Wredundant-constraints
+    -Widentities
+    -fobject-code
+    -fno-ignore-interface-pragmas
+    -fno-omit-interface-pragmas
+  build-depends:
+    base >= 4.14 && < 5,
+    aeson,
+    bytestring,
+    containers,
+    serialise,
+    text
+
+library
+  import: common-all
+  hs-source-dirs: src
+  exposed-modules:
+    TrustlessTask.Escrow
+    TrustlessTask.Dispute
+    TrustlessTask.Reputation
+    TrustlessTask.Types
+    TrustlessTask.Utils
+  build-depends:
+    plutus-core,
+    plutus-ledger-api,
+    plutus-tx,
+    plutus-tx-plugin,
+    plutus-script-utils
+
+executable trustless-task-contracts
+  import: common-all
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends:
+    trustless-task-contracts,
+    plutus-ledger-api
+
+test-suite trustless-task-tests
+  import: common-all
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs: test
+  build-depends:
+    trustless-task-contracts,
+    tasty,
+    tasty-hunit,
+    plutus-ledger-api

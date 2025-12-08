@@ -1,0 +1,52 @@
+cabal-version: 3.0
+name: trustless-task-api
+version: 0.1.0.0
+synopsis: Backend API for TrustlessTask marketplace
+license: MIT
+author: TrustlessTask Team
+maintainer: team@trustlesstask.io
+build-type: Simple
+
+common common-all
+  default-language: Haskell2010
+  ghc-options:
+    -Wall
+    -Wcompat
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+  build-depends:
+    base >= 4.14 && < 5,
+    aeson,
+    bytestring,
+    text,
+    containers,
+    time,
+    mtl
+
+library
+  import: common-all
+  hs-source-dirs: src
+  exposed-modules:
+    TrustlessTask.API
+    TrustlessTask.API.Types
+    TrustlessTask.API.Handlers
+    TrustlessTask.Cardano.Client
+    TrustlessTask.Database
+  build-depends:
+    servant,
+    servant-server,
+    warp,
+    http-types,
+    cardano-api,
+    postgresql-simple,
+    uuid,
+    transformers
+
+executable trustless-task-api
+  import: common-all
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends:
+    trustless-task-api,
+    warp
