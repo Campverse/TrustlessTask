@@ -12,26 +12,48 @@ const createDisputeSchema = z.object({
 
 router.post('/', async (req, res) => {
   try {
+    console.log('📥 Creating dispute:', req.body);
     const data = createDisputeSchema.parse(req.body);
     const dispute = await DisputeModel.create(data);
+    console.log('✅ Dispute created:', dispute.id);
     res.status(201).json(dispute);
   } catch (error) {
-    res.status(400).json({ error: 'Invalid request data' });
+    console.error('❌ Error creating dispute:', error);
+    res.status(400).json({ 
+      error: 'Invalid request data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
 router.get('/:id', async (req, res) => {
-  const dispute = await DisputeModel.getById(req.params.id);
-  if (!dispute) {
-    return res.status(404).json({ error: 'Dispute not found' });
+  try {
+    const dispute = await DisputeModel.getById(req.params.id);
+    if (!dispute) {
+      return res.status(404).json({ error: 'Dispute not found' });
+    }
+    res.json(dispute);
+  } catch (error) {
+    console.error('Error fetching dispute:', error);
+    res.status(500).json({ error: 'Failed to fetch dispute' });
   }
-  res.json(dispute);
 });
 
 router.post('/:id/resolve', async (req, res) => {
-  const outcome = req.body.outcome || req.body;
-  const result = await DisputeModel.resolve(req.params.id, Boolean(outcome));
-  res.json(result);
+  try {
+    const { id } = req.params;
+    const outcome = req.body.outcome !== undefined ? req.body.outcome : req.body;
+    
+    if (typeof outcome !== 'boolean') {
+      return res.status(400).json({ error: 'Outcome must be a boolean value' });
+    }
+    
+    const result = await DisputeModel.resolve(id, outcome);
+    res.json(result);
+  } catch (error) {
+    console.error('Error resolving dispute:', error);
+    res.status(500).json({ error: 'Failed to resolve dispute' });
+  }
 });
 
 export default router;

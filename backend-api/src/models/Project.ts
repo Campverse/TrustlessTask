@@ -40,24 +40,44 @@ export class ProjectModel {
   }) {
     await db.read();
     
+    // Validate milestone amounts sum to total
+    const milestonesTotal = data.milestones.reduce((sum, m) => sum + m.amount, 0);
+    if (Math.abs(milestonesTotal - data.totalAmount) > 1) {
+      throw new Error('Milestone amounts must sum to total amount');
+    }
+    
+    // Validate addresses are different
+    if (data.clientAddress === data.freelancerAddress) {
+      throw new Error('Client and freelancer addresses must be different');
+    }
+    
+    // Validate deadlines are in the future
+    const now = new Date();
+    for (const milestone of data.milestones) {
+      const deadline = new Date(milestone.deadline);
+      if (deadline <= now) {
+        throw new Error('All milestone deadlines must be in the future');
+      }
+    }
+    
     const id = uuidv4();
     const createdAt = new Date().toISOString();
-    const txHash = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const txHash = `tx_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
     const project: Project = {
       id,
-      title: data.title,
-      description: data.description,
-      clientAddress: data.clientAddress,
-      freelancerAddress: data.freelancerAddress,
+      title: data.title.trim(),
+      description: data.description.trim(),
+      clientAddress: data.clientAddress.trim(),
+      freelancerAddress: data.freelancerAddress.trim(),
       totalAmount: data.totalAmount,
       status: 'Created',
       createdAt,
       txHash,
-      arbiterAddress: data.arbiterAddress,
+      arbiterAddress: data.arbiterAddress?.trim(),
       milestones: data.milestones.map((m, index) => ({
         id: index + 1,
-        description: m.description,
+        description: m.description.trim(),
         amount: m.amount,
         deadline: m.deadline,
         completed: false,

@@ -46,25 +46,30 @@ export class CardanoService {
       throw new Error(`${walletName} wallet not found. Please install it first.`);
     }
 
-    this.wallet = await window.cardano[walletName]!.enable();
+    const wallet = await window.cardano[walletName]!.enable();
+    this.wallet = wallet;
     
-    const addresses = await this.wallet.getUsedAddresses();
+    const addresses = await wallet.getUsedAddresses();
     const address = addresses[0];
     
-    const balanceHex = await this.wallet.getBalance();
+    const balanceHex = await wallet.getBalance();
     const balance = parseInt(balanceHex, 16);
 
     return { address, balance };
   }
 
   async getAddress(): Promise<string> {
-    if (!this.wallet) throw new Error('Wallet not connected');
+    if (!this.wallet) {
+      throw new Error('Wallet not connected');
+    }
     const addresses = await this.wallet.getUsedAddresses();
     return addresses[0];
   }
 
   async getBalance(): Promise<number> {
-    if (!this.wallet) throw new Error('Wallet not connected');
+    if (!this.wallet) {
+      throw new Error('Wallet not connected');
+    }
     const balanceHex = await this.wallet.getBalance();
     return parseInt(balanceHex, 16);
   }
@@ -74,23 +79,14 @@ export class CardanoService {
     amount: number;
     metadata?: Record<string, any>;
   }): Promise<string> {
+    if (!this.wallet) throw new Error('Wallet not connected');
+    
     // Build transaction using Blockfrost API
-    const response = await fetch(
-      `https://cardano-${this.network}.blockfrost.io/api/v0/tx/submit`,
-      {
-        method: 'POST',
-        headers: {
-          'project_id': this.blockfrostApiKey,
-          'Content-Type': 'application/cbor',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to build transaction');
-    }
-
-    return await response.text();
+    console.log('Building transaction:', params);
+    
+    // In production, this would build a proper transaction
+    // For now, return a simulated transaction
+    return `tx_build_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   async submitTransaction(signedTx: string): Promise<string> {
@@ -122,7 +118,7 @@ export class CardanoService {
     // 3. Sign with wallet
     // 4. Submit to blockchain
     
-    return `tx_lock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `tx_lock_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   async releaseFundsFromEscrow(params: {
@@ -141,7 +137,7 @@ export class CardanoService {
     // 4. Sign with wallet
     // 5. Submit to blockchain
     
-    return `tx_release_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `tx_release_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   async queryScriptUtxos(scriptAddress: string): Promise<any[]> {

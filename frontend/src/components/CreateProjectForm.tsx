@@ -35,33 +35,62 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onSubmit, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const totalAmount = milestones.reduce((sum, m) => sum + m.amount, 0);
-    
+    // Validate basic fields
+    if (!formData.title.trim()) {
+      alert('Please enter a project title');
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      alert('Please enter a project description');
+      return;
+    }
+
+    if (!formData.freelancerAddress.trim()) {
+      alert('Please enter a freelancer address');
+      return;
+    }
+
     // Validate milestones
     if (milestones.length === 0) {
       alert('Please add at least one milestone');
       return;
     }
 
-    if (milestones.some(m => !m.description || m.amount <= 0 || !m.deadline)) {
-      alert('Please fill in all milestone fields');
+    if (milestones.some(m => !m.description.trim())) {
+      alert('Please fill in all milestone descriptions');
       return;
     }
 
-    console.log('📋 Form data:', {
-      ...formData,
-      clientAddress,
-      totalAmount,
-      milestones,
-    });
+    if (milestones.some(m => !m.amount || m.amount <= 0)) {
+      alert('Please enter valid amounts for all milestones (minimum 1,000,000 lovelace)');
+      return;
+    }
+
+    if (milestones.some(m => !m.deadline)) {
+      alert('Please set deadlines for all milestones');
+      return;
+    }
+
+    const totalAmount = milestones.reduce((sum, m) => sum + m.amount, 0);
     
-    onSubmit({
-      ...formData,
+    const projectData = {
+      title: formData.title.trim(),
+      description: formData.description.trim(),
       clientAddress,
+      freelancerAddress: formData.freelancerAddress.trim(),
       totalAmount,
-      milestones,
-      arbiterAddress: formData.arbiterAddress || undefined,
-    });
+      milestones: milestones.map(m => ({
+        description: m.description.trim(),
+        amount: m.amount,
+        deadline: m.deadline,
+      })),
+      arbiterAddress: formData.arbiterAddress.trim() || undefined,
+    };
+
+    console.log('📋 Submitting project data:', JSON.stringify(projectData, null, 2));
+    
+    onSubmit(projectData);
   };
 
   return (
@@ -152,7 +181,10 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onSubmit, 
                 min="1000000"
                 className="w-full px-3 py-2 border rounded"
                 value={milestone.amount || ''}
-                onChange={(e) => updateMilestone(index, 'amount', parseInt(e.target.value))}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  updateMilestone(index, 'amount', isNaN(value) ? 0 : value);
+                }}
               />
               <input
                 type="datetime-local"

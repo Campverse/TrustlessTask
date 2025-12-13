@@ -94,7 +94,7 @@ function App() {
 
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Routes>
-              <Route path="/" element={<ProjectsPage />} />
+              <Route path="/" element={<ProjectsPage />}/>
               <Route path="/projects" element={<ProjectsPage />} />
               <Route path="/create" element={<CreateProjectPage wallet={wallet} />} />
               <Route path="/project/:id" element={<ProjectDetailPage wallet={wallet} />} />

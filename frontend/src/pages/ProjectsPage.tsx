@@ -7,13 +7,37 @@ import { ProjectCard } from '../components/ProjectCard';
 export const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
   
-  const { data: projects, isLoading } = useQuery({
+  const { data: projects, isLoading, isError, error } = useQuery({
     queryKey: ['projects'],
     queryFn: projectsApi.list,
+    retry: 2,
+    staleTime: 30000, // 30 seconds
   });
 
   if (isLoading) {
-    return <div className="text-center py-12">Loading projects...</div>;
+    return (
+      <div className="text-center py-12">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p className="mt-4 text-gray-600">Loading projects...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-12">
+        <div className="bg-red-100 text-red-700 p-6 rounded-lg max-w-md mx-auto">
+          <h2 className="text-xl font-semibold mb-2">Failed to load projects</h2>
+          <p className="text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

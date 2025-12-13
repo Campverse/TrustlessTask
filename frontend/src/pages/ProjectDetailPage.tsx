@@ -13,30 +13,65 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ wallet }) 
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
 
-  const { data: project, isLoading } = useQuery({
+  const { data: project, isLoading, isError, error } = useQuery({
     queryKey: ['project', id],
     queryFn: () => projectsApi.getById(id!),
     enabled: !!id,
+    retry: 2,
   });
 
   const completeMutation = useMutation({
     mutationFn: ({ milestoneId }: { milestoneId: number }) =>
       projectsApi.completeMilestone(id!, milestoneId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project', id] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', id] });
+      alert('Milestone marked as complete!');
+    },
+    onError: (error) => {
+      console.error('Failed to complete milestone:', error);
+      alert('Failed to complete milestone. Please try again.');
+    },
   });
 
   const approveMutation = useMutation({
     mutationFn: ({ milestoneId }: { milestoneId: number }) =>
       projectsApi.approveMilestone(id!, milestoneId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project', id] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', id] });
+      alert('Milestone approved and funds released!');
+    },
+    onError: (error) => {
+      console.error('Failed to approve milestone:', error);
+      alert('Failed to approve milestone. Please try again.');
+    },
   });
 
   if (isLoading) {
-    return <div className="text-center py-12">Loading project...</div>;
+    return (
+      <div className="text-center py-12">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p className="mt-4 text-gray-600">Loading project...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-12">
+        <div className="bg-red-100 text-red-700 p-6 rounded-lg max-w-md mx-auto">
+          <h2 className="text-xl font-semibold mb-2">Failed to load project</h2>
+          <p className="text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+        </div>
+      </div>
+    );
   }
 
   if (!project) {
-    return <div className="text-center py-12">Project not found</div>;
+    return (
+      <div className="text-center py-12">
+        <div className="text-gray-600">Project not found</div>
+      </div>
+    );
   }
 
   const isClient = wallet.address === project.clientAddress;
