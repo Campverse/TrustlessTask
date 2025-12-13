@@ -42,9 +42,13 @@ function App() {
                       <span className="text-sm text-gray-600">
                         {(wallet.balance / 1_000_000).toFixed(2)} ₳
                       </span>
-                      <span className="text-sm text-gray-600">
-                        {wallet.address?.slice(0, 8)}...{wallet.address?.slice(-8)}
-                      </span>
+                      {wallet.address ? (
+                        <span className="text-sm text-gray-600">
+                          {wallet.address.slice(0, 8)}...{wallet.address.slice(-8)}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-red-600">No address</span>
+                      )}
                       <button
                         onClick={disconnectWallet}
                         className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"

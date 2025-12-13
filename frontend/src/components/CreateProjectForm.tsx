@@ -35,6 +35,12 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onSubmit, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate client address
+    if (!clientAddress || clientAddress.trim().length === 0) {
+      alert('Client address is missing. Please reconnect your wallet.');
+      return;
+    }
+    
     // Validate basic fields
     if (!formData.title.trim()) {
       alert('Please enter a project title');

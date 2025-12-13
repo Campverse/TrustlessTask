@@ -41,11 +41,60 @@
           "approved": false
         }
       ]
+    },
+    {
+      "id": "4d4e5cab-5029-4eaf-88c9-4381f12657c3",
+      "title": "SOFTWAR",
+      "description": "BUILDING SOFTWARE",
+      "clientAddress": "01287e33972cbb432c02765f81497a0e6f5b7580fef70db2190229d4c786a99ad04bee06e8cab58603f6385b287735a4538101d54f22b36796",
+      "freelancerAddress": "LAGOS",
+      "totalAmount": 1000000,
+      "status": "Created",
+      "createdAt": "2025-12-13T11:42:32.411Z",
+      "txHash": "tx_1765626152411_dpkz52br6",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "MVP",
+          "amount": 1000000,
+          "deadline": "2025-12-26T12:42",
+          "completed": false,
+          "approved": false
+        }
+      ]
+    },
+    {
+      "id": "78dbb3e3-ebe9-4c34-9e07-2d35ade87227",
+      "title": "TTTTT",
+      "description": "UFDDRDRDHGGG",
+      "clientAddress": "01287e33972cbb432c02765f81497a0e6f5b7580fef70db2190229d4c786a99ad04bee06e8cab58603f6385b287735a4538101d54f22b36796",
+      "freelancerAddress": "LOKOJA",
+      "totalAmount": 1000000,
+      "status": "Created",
+      "createdAt": "2025-12-13T11:44:51.158Z",
+      "txHash": "tx_1765626291158_vf775nraz",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "YTRRTRTFG",
+          "amount": 1000000,
+          "deadline": "2025-12-17T12:44",
+          "completed": false,
+          "approved": false
+        }
+      ]
     }
   ],
   "users": [
     {
       "address": "addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq2ytjqp",
+      "completedProjects": 0,
+      "totalEarned": 0,
+      "averageRating": 0,
+      "disputes": 0
+    },
+    {
+      "address": "01287e33972cbb432c02765f81497a0e6f5b7580fef70db2190229d4c786a99ad04bee06e8cab58603f6385b287735a4538101d54f22b36796",
       "completedProjects": 0,
       "totalEarned": 0,
       "averageRating": 0,

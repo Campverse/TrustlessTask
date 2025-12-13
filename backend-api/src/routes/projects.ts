@@ -28,15 +28,33 @@ router.post('/', async (req, res) => {
     const project = await ProjectModel.create(data);
     console.log('✅ Project created:', project.id);
     res.status(201).json(project);
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error creating project:', error);
-    if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+    
+    // Handle Zod validation errors
+    if (error.name === 'ZodError') {
+      const validationErrors = error.errors.map((err: any) => ({
+        field: err.path.join('.'),
+        message: err.message,
+        received: err.received,
+      }));
+      
+      console.error('Validation errors:', validationErrors);
+      
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: 'Please check all required fields',
+        validationErrors,
+      });
     }
+    
+    // Handle other errors
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
     res.status(400).json({ 
-      error: 'Invalid request data',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Failed to create project',
+      details: error.message || 'Unknown error'
     });
   }
 });

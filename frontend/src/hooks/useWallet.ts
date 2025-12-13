@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import type { WalletState } from '../types';
 import { getCardanoService } from '../services/cardano';
 
-const USE_REAL_BLOCKCHAIN = true; // Set to true when you have a Cardano wallet installed
-
 export const useWallet = () => {
   const [wallet, setWallet] = useState<WalletState>({
     connected: false,
@@ -12,78 +10,71 @@ export const useWallet = () => {
     lucid: null,
   });
 
+  // Debug: Log wallet state changes
+  useEffect(() => {
+    console.log('💼 Wallet state updated:', {
+      connected: wallet.connected,
+      address: wallet.address ? `${wallet.address.slice(0, 20)}...` : 'null',
+      balance: wallet.balance,
+    });
+  }, [wallet]);
+
   const connectWallet = async (walletName: 'nami' | 'eternl' | 'flint' | 'lace') => {
+    console.log(`🔌 Connecting to ${walletName} wallet...`);
+    
     try {
-      // Wait for wallet extension to load (they inject into window.cardano)
-      const checkWallet = async (): Promise<boolean> => {
-        if (typeof window === 'undefined') return false;
-        
-        // Wait up to 3 seconds for wallet to be available
-        for (let i = 0; i < 30; i++) {
-          if (window.cardano && window.cardano[walletName]) {
-            return true;
-          }
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        return false;
-      };
-
-      const hasWallet = await checkWallet();
-
-      if (USE_REAL_BLOCKCHAIN && hasWallet) {
-        // Real Cardano blockchain connection
-        console.log(`✅ ${walletName} wallet detected! Connecting...`);
-        const cardanoService = getCardanoService();
-        const { address, balance } = await cardanoService.connectWallet(walletName);
-
-        setWallet({
-          connected: true,
-          address,
-          balance,
-          lucid: cardanoService as any,
-        });
-
-        localStorage.setItem('connectedWallet', walletName);
-        console.log('✅ Wallet connected:', address);
-        console.log('💰 Balance:', balance / 1_000_000, 'ADA');
-        return;
+      // Check if wallet extension is available
+      if (typeof window === 'undefined' || !window.cardano || !window.cardano[walletName]) {
+        throw new Error(
+          `${walletName} wallet not found.\n\n` +
+          `Please install the ${walletName} browser extension:\n` +
+          `• Nami: https://namiwallet.io/\n` +
+          `• Lace: https://www.lace.io/\n` +
+          `• Eternl: https://eternl.io/\n` +
+          `• Flint: https://flint-wallet.com/\n\n` +
+          `After installation, refresh this page and try again.`
+        );
       }
 
-      // Demo mode - simulate wallet connection
-      console.log(`🎮 Demo mode: Simulating ${walletName} wallet connection...`);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log(`✅ ${walletName} wallet detected! Connecting...`);
       
-      setWallet({
+      // Connect to the real Cardano wallet
+      const cardanoService = getCardanoService();
+      const { address, balance } = await cardanoService.connectWallet(walletName);
+
+      if (!address) {
+        throw new Error('Failed to get wallet address. Please try again.');
+      }
+
+      const newWalletState = {
         connected: true,
-        address: 'addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq2ytjqp',
-        balance: 1000000000, // 1000 ADA
-        lucid: null,
-      });
+        address,
+        balance,
+        lucid: cardanoService as any,
+      };
       
+      setWallet(newWalletState);
       localStorage.setItem('connectedWallet', walletName);
-      console.log('✅ Demo wallet connected');
       
-      if (USE_REAL_BLOCKCHAIN && !hasWallet) {
-        console.warn(`⚠️ ${walletName} wallet not found after 3 seconds. Using demo mode.`);
-        console.log('Available wallets:', window.cardano ? Object.keys(window.cardano) : 'none');
-        alert(`${walletName} wallet not detected. Using demo mode.\n\nTo use real wallet:\n1. Install ${walletName} extension from Chrome Web Store\n2. Refresh this page\n3. Make sure wallet is unlocked\n4. Try connecting again`);
-      }
+      console.log('✅ Wallet connected successfully');
+      console.log('📍 Address:', address);
+      console.log('💰 Balance:', (balance / 1_000_000).toFixed(2), 'ADA');
+      
+      alert(`✅ Wallet connected successfully!\n\nAddress: ${address.slice(0, 20)}...\nBalance: ${(balance / 1_000_000).toFixed(2)} ADA`);
     } catch (error) {
       console.error('❌ Failed to connect wallet:', error);
-      alert(`Failed to connect ${walletName} wallet.\n\nError: ${error instanceof Error ? error.message : 'Unknown error'}\n\nFalling back to demo mode...`);
       
-      // Fallback to demo mode on error
-      setWallet({
-        connected: true,
-        address: 'addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq2ytjqp',
-        balance: 1000000000,
-        lucid: null,
-      });
-      localStorage.setItem('connectedWallet', walletName);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      alert(`❌ Failed to connect ${walletName} wallet\n\n${errorMessage}`);
+      
+      // Don't set any wallet state on error
+      throw error;
     }
   };
 
   const disconnectWallet = () => {
+    console.log('🔌 Disconnecting wallet...');
     setWallet({
       connected: false,
       address: null,
@@ -91,12 +82,21 @@ export const useWallet = () => {
       lucid: null,
     });
     localStorage.removeItem('connectedWallet');
+    console.log('✅ Wallet disconnected');
   };
 
+  // Auto-reconnect on mount if wallet was previously connected
   useEffect(() => {
     const savedWallet = localStorage.getItem('connectedWallet');
     if (savedWallet) {
-      connectWallet(savedWallet as any).catch(console.error);
+      console.log('🔄 Auto-reconnecting to saved wallet:', savedWallet);
+      
+      // Attempt to reconnect
+      connectWallet(savedWallet as any).catch((error) => {
+        console.error('❌ Failed to auto-reconnect:', error);
+        // Clear saved wallet if auto-reconnect fails
+        localStorage.removeItem('connectedWallet');
+      });
     }
   }, []);
 

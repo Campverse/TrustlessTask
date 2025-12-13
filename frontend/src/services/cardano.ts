@@ -1,6 +1,23 @@
 // Cardano Blockchain Integration using Blockfrost API
 // This enables real on-chain transactions
 
+// Helper function to decode hex address to bech32
+async function hexToAddress(hex: string): Promise<string> {
+  try {
+    // Dynamically import the WASM library
+    const CardanoWasm = await import('@emurgo/cardano-serialization-lib-browser');
+    
+    // Convert hex string to Uint8Array
+    const bytes = new Uint8Array(hex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+    const address = CardanoWasm.Address.from_bytes(bytes);
+    return address.to_bech32();
+  } catch (error) {
+    console.error('Failed to decode address:', error);
+    // If decoding fails, return the hex as-is
+    return hex;
+  }
+}
+
 export interface CardanoWallet {
   enable(): Promise<any>;
   isEnabled(): Promise<boolean>;
@@ -46,14 +63,50 @@ export class CardanoService {
       throw new Error(`${walletName} wallet not found. Please install it first.`);
     }
 
+    console.log(`Enabling ${walletName} wallet...`);
     const wallet = await window.cardano[walletName]!.enable();
     this.wallet = wallet;
     
-    const addresses = await wallet.getUsedAddresses();
-    const address = addresses[0];
+    console.log('Getting wallet addresses...');
     
+    // Try to get used addresses first
+    let addresses = await wallet.getUsedAddresses();
+    console.log('Used addresses:', addresses);
+    
+    // If no used addresses, get unused addresses
+    if (!addresses || addresses.length === 0) {
+      console.log('No used addresses, getting unused addresses...');
+      addresses = await wallet.getUnusedAddresses();
+      console.log('Unused addresses:', addresses);
+    }
+    
+    // If still no addresses, try getChangeAddress
+    if (!addresses || addresses.length === 0) {
+      console.log('No unused addresses, getting change address...');
+      const changeAddress = await wallet.getChangeAddress();
+      console.log('Change address:', changeAddress);
+      addresses = [changeAddress];
+    }
+    
+    if (!addresses || addresses.length === 0) {
+      throw new Error('Could not retrieve any addresses from wallet. Please make sure your wallet is properly set up.');
+    }
+    
+    const addressHex = addresses[0];
+    console.log('Selected address (hex):', addressHex);
+    
+    if (!addressHex) {
+      throw new Error('Wallet address is empty. Please make sure your wallet is properly set up.');
+    }
+    
+    // Decode the hex address to bech32 format
+    const address = await hexToAddress(addressHex);
+    console.log('Decoded address (bech32):', address);
+    
+    console.log('Getting wallet balance...');
     const balanceHex = await wallet.getBalance();
     const balance = parseInt(balanceHex, 16);
+    console.log('Balance (lovelace):', balance);
 
     return { address, balance };
   }
@@ -62,8 +115,22 @@ export class CardanoService {
     if (!this.wallet) {
       throw new Error('Wallet not connected');
     }
-    const addresses = await this.wallet.getUsedAddresses();
-    return addresses[0];
+    
+    // Try used addresses first
+    let addresses = await this.wallet.getUsedAddresses();
+    
+    // If no used addresses, try unused addresses
+    if (!addresses || addresses.length === 0) {
+      addresses = await this.wallet.getUnusedAddresses();
+    }
+    
+    // If still no addresses, try change address
+    if (!addresses || addresses.length === 0) {
+      const changeAddress = await this.wallet.getChangeAddress();
+      return await hexToAddress(changeAddress);
+    }
+    
+    return await hexToAddress(addresses[0]);
   }
 
   async getBalance(): Promise<number> {
