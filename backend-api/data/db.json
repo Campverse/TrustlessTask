@@ -104,6 +104,159 @@
           "approved": false
         }
       ]
+    },
+    {
+      "id": "643efbaa-b0ef-4445-9f64-cafaaf29acb7",
+      "title": "buildathon",
+      "description": "build mad softwares on cardano",
+      "clientAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "freelancerAddress": "addr_test1qq0les3t7k0dh37pta065hzc0ylwt8jfr55d2ztgpkdgnke84487c6n5z0ahj7pmy4fxes0arkk0hzwvdrhem749nxzsxr83pf",
+      "totalAmount": 1000000,
+      "status": "Completed",
+      "createdAt": "2025-12-13T13:56:30.494Z",
+      "txHash": "tx_1765634190494_xvehqmiod",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "mvp",
+          "amount": 1000000,
+          "deadline": "2025-12-18T18:58",
+          "completed": true,
+          "approved": true
+        }
+      ]
+    },
+    {
+      "id": "d2db242b-8e12-48ac-9098-089558f3c64a",
+      "title": "CARDANO CODES",
+      "description": "contribute by editing some codes",
+      "clientAddress": "addr_test1qq0les3t7k0dh37pta065hzc0ylwt8jfr55d2ztgpkdgnke84487c6n5z0ahj7pmy4fxes0arkk0hzwvdrhem749nxzsxr83pf",
+      "freelancerAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "totalAmount": 1000000,
+      "status": "InProgress",
+      "createdAt": "2025-12-13T14:09:54.519Z",
+      "txHash": "tx_1765634994519_8tndp8hwy",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "clean up the codes",
+          "amount": 1000000,
+          "deadline": "2025-12-18T20:12",
+          "completed": true,
+          "approved": false,
+          "completionTxHash": "tx_complete_1765635198587_1"
+        }
+      ]
+    },
+    {
+      "id": "d7a809b3-b5fd-45fa-81a0-2fc44ad79e9c",
+      "title": "ADA wallet dapp",
+      "description": "built a basic dAPP that can distribute tokens automatically",
+      "clientAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "freelancerAddress": "addr_test1qq0les3t7k0dh37pta065hzc0ylwt8jfr55d2ztgpkdgnke84487c6n5z0ahj7pmy4fxes0arkk0hzwvdrhem749nxzsxr83pf",
+      "totalAmount": 1000000,
+      "status": "Created",
+      "createdAt": "2025-12-13T14:47:49.099Z",
+      "txHash": "tx_1765637269099_oapna6sjl",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "mvp",
+          "amount": 1000000,
+          "deadline": "2025-12-25T19:47",
+          "completed": false,
+          "approved": false
+        }
+      ]
+    },
+    {
+      "id": "dadfd807-9e9c-4bea-855c-f8459b254480",
+      "title": "BUG fixer",
+      "description": "fix bugs and the codes",
+      "clientAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "freelancerAddress": "addr_test1qrfecefckhg3f0093jpt8dkckqkdk6ssmhfpdt0g8gcxz94agwrstr77jydvmsxlu22va6npr6ppkl8aa38arssqv3rqzlwczj",
+      "totalAmount": 1000000,
+      "status": "Created",
+      "createdAt": "2025-12-13T15:01:13.552Z",
+      "txHash": "tx_1765638073552_bvw3o4if0",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "fix serious bugs",
+          "amount": 1000000,
+          "deadline": "2025-12-27T20:07",
+          "completed": false,
+          "approved": false
+        }
+      ]
+    },
+    {
+      "id": "ef17b4cf-928a-44d1-9c83-1ecfffb9fcbc",
+      "title": "fix Bugs",
+      "description": "fix every bugs everyday",
+      "clientAddress": "addr_test1qq0les3t7k0dh37pta065hzc0ylwt8jfr55d2ztgpkdgnke84487c6n5z0ahj7pmy4fxes0arkk0hzwvdrhem749nxzsxr83pf",
+      "freelancerAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "totalAmount": 1000000,
+      "status": "Completed",
+      "createdAt": "2025-12-13T15:12:24.442Z",
+      "txHash": "tx_1765638744442_7nbkem8iz",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "fix day 1",
+          "amount": 1000000,
+          "deadline": "2025-12-24T21:15",
+          "completed": true,
+          "approved": true,
+          "completionTxHash": "tx_complete_1765639380875_1",
+          "approvalTxHash": "tx_approve_1765639496245_1"
+        }
+      ]
+    },
+    {
+      "id": "0daee60e-959e-4d93-8f9f-15930dccb4c8",
+      "title": "HASKELL BLOCK",
+      "description": "Build using haskell",
+      "clientAddress": "addr_test1qq0les3t7k0dh37pta065hzc0ylwt8jfr55d2ztgpkdgnke84487c6n5z0ahj7pmy4fxes0arkk0hzwvdrhem749nxzsxr83pf",
+      "freelancerAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "totalAmount": 1000000,
+      "status": "InProgress",
+      "createdAt": "2025-12-13T18:22:30.482Z",
+      "txHash": "tx_1765650150483_2av90q8eq",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "contract",
+          "amount": 1000000,
+          "deadline": "2025-12-26T19:28",
+          "completed": true,
+          "approved": false,
+          "completionTxHash": "tx_complete_1765650323832_1"
+        }
+      ]
+    },
+    {
+      "id": "138747fc-f693-447b-8fac-f3e777bd5c96",
+      "title": "top build",
+      "description": "build reality on blockchain",
+      "clientAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "freelancerAddress": "addr_test1qq0les3t7k0dh37pta065hzc0ylwt8jfr55d2ztgpkdgnke84487c6n5z0ahj7pmy4fxes0arkk0hzwvdrhem749nxzsxr83pf",
+      "totalAmount": 1000000,
+      "status": "Completed",
+      "createdAt": "2025-12-13T19:21:42.071Z",
+      "txHash": "tx_1765653702071_674lrd358",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "stage 1",
+          "amount": 1000000,
+          "deadline": "2025-12-30T13:24",
+          "completed": true,
+          "approved": true,
+          "completionTxHash": "tx_complete_1765657606270_1",
+          "approvalTxHash": "8911b2e557079edd831deb93d80f8629e16aaa0870548a3517815755b10f5153"
+        }
+      ]
     }
   ],
   "users": [
@@ -123,6 +276,13 @@
     },
     {
       "address": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "completedProjects": 0,
+      "totalEarned": 0,
+      "averageRating": 0,
+      "disputes": 0
+    },
+    {
+      "address": "addr_test1qq0les3t7k0dh37pta065hzc0ylwt8jfr55d2ztgpkdgnke84487c6n5z0ahj7pmy4fxes0arkk0hzwvdrhem749nxzsxr83pf",
       "completedProjects": 0,
       "totalEarned": 0,
       "averageRating": 0,

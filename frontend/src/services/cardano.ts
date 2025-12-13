@@ -195,23 +195,140 @@ export class CardanoService {
   }): Promise<string> {
     if (!this.wallet) throw new Error('Wallet not connected');
     
-    // Build transaction using Blockfrost API
-    console.log('Building transaction:', params);
+    console.log('🔨 Building real Cardano transaction with Lucid...');
+    console.log('Recipient:', params.recipient);
+    console.log('Amount:', params.amount / 1_000_000, 'ADA');
     
-    // In production, this would build a proper transaction
-    // For now, return a simulated transaction
-    return `tx_build_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    try {
+      // Import Lucid dynamically
+      const { Lucid, Blockfrost } = await import('lucid-cardano');
+      
+      // Get sender address
+      const senderAddress = await this.getAddress();
+      console.log('Sender:', senderAddress);
+      
+      // Check wallet balance
+      const balance = await this.getBalance();
+      console.log('Wallet balance:', balance / 1_000_000, 'ADA');
+      
+      if (balance === 0) {
+        throw new Error(
+          'No funds available in wallet.\n\n' +
+          'To make real blockchain transactions, you need testnet ADA:\n\n' +
+          '1. Visit: https://docs.cardano.org/cardano-testnet/tools/faucet/\n' +
+          '2. Enter your wallet address: ' + senderAddress + '\n' +
+          '3. Request testnet ADA (free)\n' +
+          '4. Wait ~20 seconds for confirmation\n' +
+          '5. Refresh and try again'
+        );
+      }
+      
+      if (balance < params.amount + 2_000_000) {
+        throw new Error(
+          `Insufficient funds.\n\n` +
+          `Required: ${(params.amount + 2_000_000) / 1_000_000} ADA (including fees)\n` +
+          `Available: ${balance / 1_000_000} ADA\n\n` +
+          `Get more testnet ADA from the faucet.`
+        );
+      }
+      
+      // Check for valid Blockfrost API key
+      const blockfrostApiKey = import.meta.env.VITE_BLOCKFROST_PROJECT_ID;
+      
+      if (!blockfrostApiKey || blockfrostApiKey === 'preprodDemo123') {
+        throw new Error(
+          'Valid Blockfrost API key required for real transactions.\n\n' +
+          'Setup instructions:\n' +
+          '1. Get FREE API key from https://blockfrost.io\n' +
+          '2. Create account and new project (Preprod Testnet)\n' +
+          '3. Copy your project ID\n' +
+          '4. Create frontend/.env file:\n' +
+          '   VITE_BLOCKFROST_PROJECT_ID=preprodYourKeyHere\n' +
+          '5. Restart frontend server: npm run dev\n\n' +
+          'Without a valid API key, real blockchain transactions cannot be made.'
+        );
+      }
+      
+      console.log('Initializing Lucid with Blockfrost...');
+      
+      // Initialize Lucid with Blockfrost
+      const lucid = await Lucid.new(
+        new Blockfrost('https://cardano-preprod.blockfrost.io/api/v0', blockfrostApiKey),
+        'Preprod'
+      );
+      
+      // Select wallet
+      lucid.selectWallet(this.wallet);
+      
+      console.log('✅ Lucid initialized, building transaction...');
+      
+      // Build transaction
+      const tx = await lucid
+        .newTx()
+        .payToAddress(params.recipient, { lovelace: BigInt(params.amount) })
+        .attachMetadata(674, params.metadata || {})
+        .complete();
+      
+      console.log('Transaction built, requesting wallet signature...');
+      
+      // Sign transaction
+      const signedTx = await tx.sign().complete();
+      
+      console.log('✅ Transaction signed successfully');
+      
+      // Return signed transaction as hex
+      return signedTx.toString();
+    } catch (error: any) {
+      console.error('❌ Failed to build transaction:', error);
+      
+      if (error.message?.includes('Invalid project token')) {
+        throw new Error(
+          'Blockfrost API key is invalid.\n\n' +
+          'To enable real transactions:\n' +
+          '1. Get free API key from https://blockfrost.io\n' +
+          '2. Add to frontend/.env:\n' +
+          '   VITE_BLOCKFROST_PROJECT_ID=preprodYourKeyHere\n' +
+          '3. Restart frontend server'
+        );
+      }
+      
+      throw error;
+    }
   }
 
   async submitTransaction(signedTx: string): Promise<string> {
     if (!this.wallet) throw new Error('Wallet not connected');
     
     try {
-      const txHash = await this.wallet.submitTx(signedTx);
+      console.log('📤 Submitting transaction to Cardano blockchain...');
+      
+      // Check for valid Blockfrost API key
+      const blockfrostApiKey = import.meta.env.VITE_BLOCKFROST_PROJECT_ID;
+      
+      if (!blockfrostApiKey || blockfrostApiKey === 'preprodDemo123') {
+        throw new Error('Valid Blockfrost API key required. See setup instructions.');
+      }
+      
+      // Import Lucid dynamically
+      const { Lucid, Blockfrost } = await import('lucid-cardano');
+      
+      // Initialize Lucid with Blockfrost
+      const lucid = await Lucid.new(
+        new Blockfrost('https://cardano-preprod.blockfrost.io/api/v0', blockfrostApiKey),
+        'Preprod'
+      );
+      
+      // Submit the signed transaction
+      const txHash = await lucid.provider.submitTx(signedTx);
+      
+      console.log('✅ Transaction submitted successfully!');
+      console.log('Transaction hash:', txHash);
+      console.log(`View on explorer: https://preprod.cardanoscan.io/transaction/${txHash}`);
+      
       return txHash;
-    } catch (error) {
-      console.error('Transaction submission failed:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('❌ Transaction submission failed:', error);
+      throw new Error(`Failed to submit transaction: ${error.message}`);
     }
   }
 

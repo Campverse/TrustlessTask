@@ -23,6 +23,12 @@ export default defineConfig({
     sourcemap: true,
   },
   optimizeDeps: {
-    exclude: ['@emurgo/cardano-serialization-lib-browser'],
+    exclude: ['@emurgo/cardano-serialization-lib-browser', 'lucid-cardano'],
+    esbuildOptions: {
+      target: 'esnext',
+    },
+  },
+  worker: {
+    format: 'es',
   },
 });

@@ -73,7 +73,7 @@ export const projectsApi = {
     return response.data;
   },
 
-  completeMilestone: async (projectId: string, milestoneId: number) => {
+  completeMilestone: async (projectId: string, milestoneId: number, signedTx?: string) => {
     if (USE_MOCK_DATA) {
       await new Promise(resolve => setTimeout(resolve, 800));
       const project = mockProjects.find(p => p.id === projectId);
@@ -83,11 +83,13 @@ export const projectsApi = {
       }
       return { txHash: 'mock_complete_' + Date.now(), status: 'Submitted' };
     }
-    const response = await api.post(`/projects/${projectId}/milestone/${milestoneId}/complete`);
+    const response = await api.post(`/projects/${projectId}/milestone/${milestoneId}/complete`, {
+      signedTx,
+    });
     return response.data;
   },
 
-  approveMilestone: async (projectId: string, milestoneId: number) => {
+  approveMilestone: async (projectId: string, milestoneId: number, signedTx?: string) => {
     if (USE_MOCK_DATA) {
       await new Promise(resolve => setTimeout(resolve, 800));
       const project = mockProjects.find(p => p.id === projectId);
@@ -97,7 +99,9 @@ export const projectsApi = {
       }
       return { txHash: 'mock_approve_' + Date.now(), status: 'Submitted' };
     }
-    const response = await api.post(`/projects/${projectId}/milestone/${milestoneId}/approve`);
+    const response = await api.post(`/projects/${projectId}/milestone/${milestoneId}/approve`, {
+      signedTx,
+    });
     return response.data;
   },
 

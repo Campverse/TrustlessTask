@@ -22,6 +22,8 @@ export interface Milestone {
   deadline: string;
   completed: boolean;
   approved: boolean;
+  completionTxHash?: string;
+  approvalTxHash?: string;
 }
 
 export class ProjectModel {
@@ -119,34 +121,66 @@ export class ProjectModel {
     }
   }
 
-  static async completeMilestone(projectId: string, milestoneId: number) {
+  static async completeMilestone(projectId: string, milestoneId: number, txHash?: string) {
     await db.read();
     const project = db.data!.projects.find(p => p.id === projectId);
-    if (project) {
-      const milestone = project.milestones.find(m => m.id === milestoneId);
-      if (milestone) {
-        milestone.completed = true;
-        await db.write();
-      }
+    if (!project) {
+      throw new Error('Project not found');
     }
-    return { txHash: `tx_complete_${Date.now()}`, status: 'Submitted' };
+    
+    const milestone = project.milestones.find(m => m.id === milestoneId);
+    if (!milestone) {
+      throw new Error('Milestone not found');
+    }
+    
+    milestone.completed = true;
+    if (txHash) {
+      milestone.completionTxHash = txHash;
+    }
+    
+    project.status = 'InProgress';
+    await db.write();
+    
+    return { 
+      txHash: txHash || `tx_complete_${Date.now()}`, 
+      status: 'Completed',
+      milestone 
+    };
   }
 
-  static async approveMilestone(projectId: string, milestoneId: number) {
+  static async approveMilestone(projectId: string, milestoneId: number, txHash?: string) {
     await db.read();
     const project = db.data!.projects.find(p => p.id === projectId);
-    if (project) {
-      const milestone = project.milestones.find(m => m.id === milestoneId);
-      if (milestone) {
-        milestone.approved = true;
-        
-        const allApproved = project.milestones.every(m => m.completed && m.approved);
-        project.status = allApproved ? 'Completed' : 'InProgress';
-        
-        await db.write();
-      }
+    if (!project) {
+      throw new Error('Project not found');
     }
-    return { txHash: `tx_approve_${Date.now()}`, status: 'Submitted' };
+    
+    const milestone = project.milestones.find(m => m.id === milestoneId);
+    if (!milestone) {
+      throw new Error('Milestone not found');
+    }
+    
+    if (!milestone.completed) {
+      throw new Error('Cannot approve milestone that is not completed');
+    }
+    
+    milestone.approved = true;
+    if (txHash) {
+      milestone.approvalTxHash = txHash;
+    }
+    
+    // Check if all milestones are completed and approved
+    const allApproved = project.milestones.every(m => m.completed && m.approved);
+    project.status = allApproved ? 'Completed' : 'InProgress';
+    
+    await db.write();
+    
+    return { 
+      txHash: txHash || `tx_approve_${Date.now()}`, 
+      status: 'Approved',
+      milestone,
+      projectCompleted: allApproved
+    };
   }
 
   static async cancelProject(id: string) {

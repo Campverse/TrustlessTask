@@ -21,28 +21,126 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ wallet }) 
   });
 
   const completeMutation = useMutation({
-    mutationFn: ({ milestoneId }: { milestoneId: number }) =>
-      projectsApi.completeMilestone(id!, milestoneId),
-    onSuccess: () => {
+    mutationFn: async ({ milestoneId }: { milestoneId: number }) => {
+      if (!wallet.connected) {
+        throw new Error('Wallet not connected');
+      }
+      
+      console.log('📝 Marking milestone as complete...');
+      console.log('Milestone ID:', milestoneId);
+      console.log('Freelancer address:', wallet.address);
+      
+      // Import cardano service dynamically
+      const { getCardanoService } = await import('../services/cardano');
+      const cardanoService = getCardanoService();
+      
+      const milestone = project?.milestones.find(m => m.id === milestoneId);
+      if (!milestone) {
+        throw new Error('Milestone not found');
+      }
+      
+      try {
+        // Build real blockchain transaction
+        console.log('🔨 Building completion transaction...');
+        const signedTx = await cardanoService.buildTransaction({
+          recipient: wallet.address, // Send small amount to self as proof
+          amount: 1_000_000, // 1 ADA
+          metadata: {
+            projectId: project!.id,
+            milestoneId: milestoneId,
+            action: 'milestone_completion',
+            timestamp: new Date().toISOString(),
+          }
+        });
+        
+        console.log('📤 Submitting transaction to blockchain...');
+        const txHash = await cardanoService.submitTransaction(signedTx);
+        
+        console.log('✅ Transaction submitted:', txHash);
+        return projectsApi.completeMilestone(id!, milestoneId, txHash);
+      } catch (error) {
+        console.error('❌ Transaction failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        alert(`❌ TRANSACTION FAILED\n\n${errorMessage}\n\nMilestone completion requires a successful blockchain transaction.`);
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['project', id] });
-      alert('Milestone marked as complete!');
+      console.log('✅ Milestone completed, tx:', data.txHash);
+      
+      const explorerUrl = `https://preprod.cardanoscan.io/transaction/${data.txHash}`;
+      alert(
+        `✅ Milestone marked as complete!\n\n` +
+        `Transaction: ${data.txHash}\n\n` +
+        `View on Cardano Explorer:\n${explorerUrl}`
+      );
     },
     onError: (error) => {
-      console.error('Failed to complete milestone:', error);
-      alert('Failed to complete milestone. Please try again.');
+      console.error('❌ Failed to complete milestone:', error);
+      // Error already shown in mutationFn
     },
   });
 
   const approveMutation = useMutation({
-    mutationFn: ({ milestoneId }: { milestoneId: number }) =>
-      projectsApi.approveMilestone(id!, milestoneId),
-    onSuccess: () => {
+    mutationFn: async ({ milestoneId }: { milestoneId: number }) => {
+      if (!wallet.connected) {
+        throw new Error('Wallet not connected');
+      }
+      
+      console.log('💰 Approving milestone and releasing funds...');
+      console.log('Milestone ID:', milestoneId);
+      console.log('Client address:', wallet.address);
+      
+      const milestone = project?.milestones.find(m => m.id === milestoneId);
+      if (!milestone) {
+        throw new Error('Milestone not found');
+      }
+      
+      console.log('Amount to release:', milestone.amount / 1_000_000, 'ADA');
+      console.log('Recipient (freelancer):', project?.freelancerAddress);
+      
+      // Import cardano service dynamically
+      const { getCardanoService } = await import('../services/cardano');
+      const cardanoService = getCardanoService();
+      
+      try {
+        // Build real blockchain transaction to send funds to freelancer
+        console.log('🔨 Building fund release transaction...');
+        const signedTx = await cardanoService.buildTransaction({
+          recipient: project!.freelancerAddress,
+          amount: milestone.amount,
+          metadata: {
+            projectId: project!.id,
+            milestoneId: milestoneId,
+            action: 'milestone_approval',
+            amount: milestone.amount,
+            timestamp: new Date().toISOString(),
+          }
+        });
+        
+        console.log('📤 Submitting transaction to blockchain...');
+        const txHash = await cardanoService.submitTransaction(signedTx);
+        
+        console.log('✅ Transaction submitted:', txHash);
+        return projectsApi.approveMilestone(id!, milestoneId, txHash);
+      } catch (error) {
+        console.error('❌ Transaction failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        alert('❌ TRANSACTION FAILED\n\n' + errorMessage + '\n\nMilestone approval requires a successful blockchain transaction.');
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['project', id] });
-      alert('Milestone approved and funds released!');
+      console.log('✅ Funds released, tx:', data.txHash);
+      
+      const explorerUrl = `https://preprod.cardanoscan.io/transaction/${data.txHash}`;
+      alert(`Milestone approved and funds released!\n\nTransaction: ${data.txHash}\n\nView on Cardano Explorer:\n${explorerUrl}`);
     },
     onError: (error) => {
-      console.error('Failed to approve milestone:', error);
-      alert('Failed to approve milestone. Please try again.');
+      console.error('❌ Failed to approve milestone:', error);
+      alert(`Failed to approve milestone: ${error instanceof Error ? error.message : 'Unknown error'}`);
     },
   });
 
@@ -142,25 +240,41 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ wallet }) 
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={milestone.completed}
-                    disabled
-                    className="w-5 h-5"
-                  />
-                  <span className="text-sm">Completed</span>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={milestone.completed}
+                      disabled
+                      className="w-5 h-5"
+                    />
+                    <span className="text-sm">Completed</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={milestone.approved}
+                      disabled
+                      className="w-5 h-5"
+                    />
+                    <span className="text-sm">Approved</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={milestone.approved}
-                    disabled
-                    className="w-5 h-5"
-                  />
-                  <span className="text-sm">Approved</span>
-                </div>
+                
+                {(milestone as any).completionTxHash && (
+                  <div className="text-xs text-gray-500">
+                    <span className="font-semibold">Completion Tx:</span>{' '}
+                    <span className="font-mono">{(milestone as any).completionTxHash}</span>
+                  </div>
+                )}
+                
+                {(milestone as any).approvalTxHash && (
+                  <div className="text-xs text-gray-500">
+                    <span className="font-semibold">Release Tx:</span>{' '}
+                    <span className="font-mono">{(milestone as any).approvalTxHash}</span>
+                  </div>
+                )}
               </div>
 
               <div className="mt-4 flex space-x-3">
