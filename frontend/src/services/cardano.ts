@@ -1,19 +1,66 @@
 // Cardano Blockchain Integration using Blockfrost API
 // This enables real on-chain transactions
 
-// Helper function to decode hex address to bech32
-async function hexToAddress(hex: string): Promise<string> {
+import { bech32 } from 'bech32';
+
+// Convert hex address to bech32 format
+function hexToAddress(hex: string): string {
   try {
-    // Dynamically import the WASM library
-    const CardanoWasm = await import('@emurgo/cardano-serialization-lib-browser');
+    console.log('🔄 Converting address from hex:', hex);
     
-    // Convert hex string to Uint8Array
-    const bytes = new Uint8Array(hex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
-    const address = CardanoWasm.Address.from_bytes(bytes);
-    return address.to_bech32();
+    // Check if it's already a bech32 address
+    if (hex.startsWith('addr') || hex.startsWith('stake')) {
+      console.log('✅ Already in bech32 format');
+      return hex;
+    }
+    
+    // Convert hex string to byte array
+    const hexMatch = hex.match(/.{1,2}/g);
+    if (!hexMatch) {
+      throw new Error('Invalid hex string');
+    }
+    
+    const bytes = hexMatch.map(byte => parseInt(byte, 16));
+    console.log('📊 Byte array length:', bytes.length);
+    console.log('📊 First 4 bytes:', bytes.slice(0, 4).map(b => b.toString(16).padStart(2, '0')).join(' '));
+    
+    // Determine prefix based on first byte (network tag)
+    // Cardano addresses: first 4 bits indicate network
+    // 0000 = testnet, 0001 = mainnet
+    const firstByte = bytes[0];
+    const networkId = (firstByte >> 4) & 0x0F;
+    const prefix = networkId === 0 ? 'addr_test' : 'addr';
+    
+    console.log('🌐 Network ID:', networkId, 'Prefix:', prefix);
+    console.log('🔢 First byte:', firstByte.toString(16).padStart(2, '0'));
+    
+    // Convert to Uint8Array for bech32 library
+    const uint8Array = new Uint8Array(bytes);
+    
+    // Convert to 5-bit words for bech32 encoding
+    const words = bech32.toWords(uint8Array);
+    console.log('📝 Words length:', words.length);
+    
+    // Encode to bech32 with proper limit (1023 is max for bech32)
+    // Use bech32.encode with limit parameter
+    const address = bech32.encode(prefix, words, 1023);
+    
+    console.log('✅ Converted to bech32:', address);
+    console.log('📏 Address length:', address.length);
+    
+    // Verify the conversion by decoding it back
+    try {
+      const decoded = bech32.decode(address, 1023);
+      console.log('✓ Verification: decoded prefix =', decoded.prefix);
+    } catch (e) {
+      console.warn('⚠️ Could not verify decoded address:', e);
+    }
+    
+    return address;
   } catch (error) {
-    console.error('Failed to decode address:', error);
-    // If decoding fails, return the hex as-is
+    console.error('❌ Failed to convert address:', error);
+    console.error('Hex was:', hex);
+    // Return hex as fallback
     return hex;
   }
 }
@@ -99,9 +146,9 @@ export class CardanoService {
       throw new Error('Wallet address is empty. Please make sure your wallet is properly set up.');
     }
     
-    // Decode the hex address to bech32 format
-    const address = await hexToAddress(addressHex);
-    console.log('Decoded address (bech32):', address);
+    // Convert the hex address to readable format
+    const address = hexToAddress(addressHex);
+    console.log('Converted address:', address);
     
     console.log('Getting wallet balance...');
     const balanceHex = await wallet.getBalance();
@@ -127,10 +174,10 @@ export class CardanoService {
     // If still no addresses, try change address
     if (!addresses || addresses.length === 0) {
       const changeAddress = await this.wallet.getChangeAddress();
-      return await hexToAddress(changeAddress);
+      return hexToAddress(changeAddress);
     }
     
-    return await hexToAddress(addresses[0]);
+    return hexToAddress(addresses[0]);
   }
 
   async getBalance(): Promise<number> {

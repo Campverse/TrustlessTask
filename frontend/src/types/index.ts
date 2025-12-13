@@ -67,4 +67,5 @@ export interface WalletState {
   address: string | null;
   balance: number;
   lucid: any | null;
+  walletName?: string;
 }

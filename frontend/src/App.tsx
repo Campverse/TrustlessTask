@@ -39,6 +39,11 @@ function App() {
                 <div>
                   {wallet.connected ? (
                     <div className="flex items-center space-x-4">
+                      {wallet.walletName && (
+                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded font-semibold uppercase">
+                          {wallet.walletName}
+                        </span>
+                      )}
                       <span className="text-sm text-gray-600">
                         {(wallet.balance / 1_000_000).toFixed(2)} ₳
                       </span>
@@ -63,18 +68,20 @@ function App() {
                       >
                         Connect Wallet
                       </button>
-                      <div className="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                      <div className="hidden group-hover:block absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50">
                         <button
                           onClick={() => connectWallet('nami')}
                           className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                         >
-                          Nami
+                          <div className="font-medium">Nami</div>
+                          <div className="text-xs text-gray-500">Via Lace if installed</div>
                         </button>
                         <button
                           onClick={() => connectWallet('lace')}
                           className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                         >
-                          Lace
+                          <div className="font-medium">Lace</div>
+                          <div className="text-xs text-gray-500">Includes Nami support</div>
                         </button>
                         <button
                           onClick={() => connectWallet('eternl')}
