@@ -83,6 +83,27 @@
           "approved": false
         }
       ]
+    },
+    {
+      "id": "3f1488e7-7638-4d66-aef7-75f07c2db213",
+      "title": "MOBILE UI FEATURE UPDATE",
+      "description": "updating the home screen user interface.",
+      "clientAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "freelancerAddress": "addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq2ytjqp",
+      "totalAmount": 1000000,
+      "status": "Created",
+      "createdAt": "2025-12-13T13:39:10.871Z",
+      "txHash": "tx_1765633150871_o0i5ab69g",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "MVP",
+          "amount": 1000000,
+          "deadline": "2025-12-13T18:35",
+          "completed": false,
+          "approved": false
+        }
+      ]
     }
   ],
   "users": [
@@ -95,6 +116,13 @@
     },
     {
       "address": "01287e33972cbb432c02765f81497a0e6f5b7580fef70db2190229d4c786a99ad04bee06e8cab58603f6385b287735a4538101d54f22b36796",
+      "completedProjects": 0,
+      "totalEarned": 0,
+      "averageRating": 0,
+      "disputes": 0
+    },
+    {
+      "address": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
       "completedProjects": 0,
       "totalEarned": 0,
       "averageRating": 0,
