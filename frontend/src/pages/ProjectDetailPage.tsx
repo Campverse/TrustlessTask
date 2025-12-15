@@ -20,15 +20,139 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ wallet }) 
   });
 
   const completeMutation = useMutation({
-    mutationFn: ({ milestoneId }: { milestoneId: number }) =>
-      projectsApi.completeMilestone(id!, milestoneId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project', id] }),
+    mutationFn: async ({ milestoneId }: { milestoneId: number }) => {
+      if (!project) throw new Error('Project not found');
+      
+      const milestone = project.milestones.find(m => m.id === milestoneId);
+      if (!milestone) throw new Error('Milestone not found');
+      
+      console.log('📝 Marking milestone as complete with blockchain transaction...');
+      console.log('Milestone:', milestone.description);
+      console.log('Client:', project.clientAddress);
+      
+      // Import Cardano service dynamically
+      const { getCardanoService } = await import('../services/cardano');
+      const cardanoService = getCardanoService();
+      
+      if (!cardanoService.isWalletConnected()) {
+        throw new Error('❌ Wallet not connected.\n\nPlease connect your Cardano wallet first to mark milestone as complete.');
+      }
+      
+      // Build and sign the completion transaction
+      console.log('🔨 Building completion transaction (1 ADA to client as proof)...');
+      const signedTx = await cardanoService.buildMilestoneCompletion({
+        projectId: id!,
+        milestoneId,
+        clientAddress: project.clientAddress,
+        projectTitle: project.title,
+        milestoneDescription: milestone.description,
+      });
+      
+      console.log('✅ Transaction signed, submitting to blockchain...');
+      
+      // Submit the transaction to Cardano blockchain
+      const txHash = await cardanoService.submitTransaction(signedTx);
+      
+      console.log('✅ Completion transaction submitted to Cardano blockchain!');
+      console.log('Transaction hash:', txHash);
+      console.log(`View on explorer: https://preprod.cardanoscan.io/transaction/${txHash}`);
+      
+      // Update backend with real transaction hash
+      return projectsApi.completeMilestone(id!, milestoneId, txHash);
+    },
+    onSuccess: (data: any) => {
+      console.log('✅ Milestone marked as complete on blockchain');
+      const txHash = data.txHash || 'unknown';
+      alert(
+        `✅ Milestone Marked Complete!\n\n` +
+        `Transaction Hash: ${txHash}\n\n` +
+        `View on explorer:\n` +
+        `https://preprod.cardanoscan.io/transaction/${txHash}\n\n` +
+        `A proof-of-completion transaction (1 ADA) has been sent to the client.\n` +
+        `The client can now approve and release the full milestone payment.`
+      );
+      queryClient.invalidateQueries({ queryKey: ['project', id] });
+    },
+    onError: (error: any) => {
+      console.error('❌ Failed to complete milestone:', error);
+      alert(
+        `❌ Failed to Mark Complete\n\n` +
+        `${error.message || 'Failed to complete milestone'}\n\n` +
+        `Please check:\n` +
+        `• Wallet is connected\n` +
+        `• You have at least 1.2 ADA (1 ADA + fees)\n` +
+        `• Blockfrost API key is configured\n` +
+        `• You are running in development mode (npm run dev)`
+      );
+    },
   });
 
   const approveMutation = useMutation({
-    mutationFn: ({ milestoneId }: { milestoneId: number }) =>
-      projectsApi.approveMilestone(id!, milestoneId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project', id] }),
+    mutationFn: async ({ milestoneId }: { milestoneId: number }) => {
+      if (!project) throw new Error('Project not found');
+      
+      const milestone = project.milestones.find(m => m.id === milestoneId);
+      if (!milestone) throw new Error('Milestone not found');
+      
+      console.log('💰 Approving milestone and releasing funds...');
+      console.log('Amount:', milestone.amount / 1_000_000, 'ADA');
+      console.log('Recipient:', project.freelancerAddress);
+      
+      // Import Cardano service dynamically
+      const { getCardanoService } = await import('../services/cardano');
+      const cardanoService = getCardanoService();
+      
+      if (!cardanoService.isWalletConnected()) {
+        throw new Error('❌ Wallet not connected.\n\nPlease connect your Cardano wallet first to approve and release funds.');
+      }
+      
+      // Build and sign the transaction
+      console.log('🔨 Building real blockchain transaction...');
+      const signedTx = await cardanoService.buildMilestonePayment({
+        projectId: id!,
+        milestoneId,
+        recipient: project.freelancerAddress,
+        amount: milestone.amount,
+        projectTitle: project.title,
+        milestoneDescription: milestone.description,
+      });
+      
+      console.log('✅ Transaction signed, submitting to blockchain...');
+      
+      // Submit the transaction to Cardano blockchain
+      const txHash = await cardanoService.submitTransaction(signedTx);
+      
+      console.log('✅ Transaction submitted to Cardano blockchain!');
+      console.log('Transaction hash:', txHash);
+      console.log(`View on explorer: https://preprod.cardanoscan.io/transaction/${txHash}`);
+      
+      // Update backend with real transaction hash
+      return projectsApi.approveMilestone(id!, milestoneId, txHash);
+    },
+    onSuccess: (data: any) => {
+      console.log('✅ Milestone approved and funds released on blockchain');
+      const txHash = data.txHash || 'unknown';
+      alert(
+        `✅ Funds Released Successfully!\n\n` +
+        `Transaction Hash: ${txHash}\n\n` +
+        `View on explorer:\n` +
+        `https://preprod.cardanoscan.io/transaction/${txHash}\n\n` +
+        `The freelancer will receive the funds shortly.`
+      );
+      queryClient.invalidateQueries({ queryKey: ['project', id] });
+    },
+    onError: (error: any) => {
+      console.error('❌ Failed to approve milestone:', error);
+      alert(
+        `❌ Transaction Failed\n\n` +
+        `${error.message || 'Failed to approve milestone'}\n\n` +
+        `Please check:\n` +
+        `• Wallet is connected\n` +
+        `• You have sufficient ADA (amount + ~0.17 ADA fee)\n` +
+        `• Blockfrost API key is configured\n` +
+        `• You are running in development mode (npm run dev)`
+      );
+    },
   });
 
   if (isLoading) {

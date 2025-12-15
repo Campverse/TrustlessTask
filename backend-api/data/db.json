@@ -257,6 +257,71 @@
           "approvalTxHash": "8911b2e557079edd831deb93d80f8629e16aaa0870548a3517815755b10f5153"
         }
       ]
+    },
+    {
+      "id": "a983d027-0683-4eea-81b5-bff1fa626753",
+      "title": "trustless",
+      "description": "just build",
+      "clientAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "freelancerAddress": "addr_test1qq0les3t7k0dh37pta065hzc0ylwt8jfr55d2ztgpkdgnke84487c6n5z0ahj7pmy4fxes0arkk0hzwvdrhem749nxzsxr83pf",
+      "totalAmount": 1000000,
+      "status": "Completed",
+      "createdAt": "2025-12-15T15:51:33.479Z",
+      "txHash": "tx_1765813893479_xvcgty31l",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "mvp",
+          "amount": 1000000,
+          "deadline": "2025-12-26T20:55",
+          "completed": true,
+          "approved": true,
+          "approvalTxHash": "tx_approve_1765814436863_1"
+        }
+      ]
+    },
+    {
+      "id": "96786016-e27f-45e6-a6fd-86e21cd363a7",
+      "title": "Cardano lite",
+      "description": "build cheap gas fee system",
+      "clientAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "freelancerAddress": "addr_test1qq0les3t7k0dh37pta065hzc0ylwt8jfr55d2ztgpkdgnke84487c6n5z0ahj7pmy4fxes0arkk0hzwvdrhem749nxzsxr83pf",
+      "totalAmount": 1000000,
+      "status": "InProgress",
+      "createdAt": "2025-12-15T16:08:17.406Z",
+      "txHash": "tx_1765814897406_7dhpl6x0g",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "deploy contracts",
+          "amount": 1000000,
+          "deadline": "2025-12-27T17:13",
+          "completed": true,
+          "approved": false
+        }
+      ]
+    },
+    {
+      "id": "6c884d96-16f8-4428-aa37-3892a038b78c",
+      "title": "Bugs remover",
+      "description": "remove every bugs you see",
+      "clientAddress": "addr_test1qq0les3t7k0dh37pta065hzc0ylwt8jfr55d2ztgpkdgnke84487c6n5z0ahj7pmy4fxes0arkk0hzwvdrhem749nxzsxr83pf",
+      "freelancerAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
+      "totalAmount": 1000000,
+      "status": "InProgress",
+      "createdAt": "2025-12-15T16:13:08.298Z",
+      "txHash": "tx_1765815188298_r5ur8se00",
+      "milestones": [
+        {
+          "id": 1,
+          "description": "bug fixing first week",
+          "amount": 1000000,
+          "deadline": "2025-12-31T22:19",
+          "completed": true,
+          "approved": false,
+          "completionTxHash": "4b32209116882ffc501ff45c038fb6efa6694c21e9107b38eca151941b6cd72f"
+        }
+      ]
     }
   ],
   "users": [

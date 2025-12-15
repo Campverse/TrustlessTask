@@ -202,7 +202,7 @@ export class CardanoService {
     console.log('Amount:', params.amount / 1_000_000, 'ADA');
     
     try {
-      // Import Lucid dynamically - this will fail in build, so we catch it
+      // Import Lucid dynamically
       let Lucid, Blockfrost;
       try {
         const lucidModule = await import('lucid-cardano');
@@ -312,19 +312,92 @@ export class CardanoService {
     }
   }
 
+  async buildMilestonePayment(params: {
+    projectId: string;
+    milestoneId: number;
+    recipient: string;
+    amount: number;
+    projectTitle: string;
+    milestoneDescription: string;
+  }): Promise<string> {
+    console.log('💰 Building milestone payment transaction...');
+    
+    // Truncate strings to fit Cardano's 64-character metadata limit
+    const truncate = (str: string, maxLen: number = 60) => 
+      str.length > maxLen ? str.substring(0, maxLen) + '...' : str;
+    
+    const metadata = {
+      type: 'payment',
+      pid: params.projectId.substring(0, 20),
+      mid: params.milestoneId,
+      title: truncate(params.projectTitle, 60),
+      desc: truncate(params.milestoneDescription, 60),
+      amt: params.amount,
+      ts: new Date().toISOString(),
+    };
+    
+    return this.buildTransaction({
+      recipient: params.recipient,
+      amount: params.amount,
+      metadata,
+    });
+  }
+
+  async buildMilestoneCompletion(params: {
+    projectId: string;
+    milestoneId: number;
+    clientAddress: string;
+    projectTitle: string;
+    milestoneDescription: string;
+  }): Promise<string> {
+    console.log('📝 Building milestone completion transaction...');
+    
+    // Truncate strings to fit Cardano's 64-character metadata limit
+    const truncate = (str: string, maxLen: number = 60) => 
+      str.length > maxLen ? str.substring(0, maxLen) + '...' : str;
+    
+    const metadata = {
+      type: 'complete',
+      pid: params.projectId.substring(0, 20),
+      mid: params.milestoneId,
+      title: truncate(params.projectTitle, 60),
+      desc: truncate(params.milestoneDescription, 60),
+      by: (await this.getAddress()).substring(0, 40),
+      ts: new Date().toISOString(),
+    };
+    
+    // Send a small transaction (1 ADA) to the client as proof of completion
+    // This creates an on-chain record that the freelancer has finished the work
+    return this.buildTransaction({
+      recipient: params.clientAddress,
+      amount: 1_000_000, // 1 ADA
+      metadata,
+    });
+  }
+
   async submitTransaction(signedTx: string): Promise<string> {
     if (!this.wallet) throw new Error('Wallet not connected');
     
+    console.log('📤 Submitting transaction to Cardano blockchain...');
+    
+    // Check for valid Blockfrost API key
+    const blockfrostApiKey = import.meta.env.VITE_BLOCKFROST_PROJECT_ID;
+    
+    if (!blockfrostApiKey || blockfrostApiKey === 'preprodDemo123') {
+      throw new Error(
+        '❌ Valid Blockfrost API key required for real transactions.\n\n' +
+        'Setup instructions:\n' +
+        '1. Get FREE API key from https://blockfrost.io\n' +
+        '2. Create account and new project (Preprod Testnet)\n' +
+        '3. Copy your project ID\n' +
+        '4. Add to frontend/.env:\n' +
+        '   VITE_BLOCKFROST_PROJECT_ID=preprodYourKeyHere\n' +
+        '5. Restart frontend server: npm run dev\n\n' +
+        'Without a valid API key, real blockchain transactions cannot be made.'
+      );
+    }
+    
     try {
-      console.log('📤 Submitting transaction to Cardano blockchain...');
-      
-      // Check for valid Blockfrost API key
-      const blockfrostApiKey = import.meta.env.VITE_BLOCKFROST_PROJECT_ID;
-      
-      if (!blockfrostApiKey || blockfrostApiKey === 'preprodDemo123') {
-        throw new Error('Valid Blockfrost API key required. See setup instructions.');
-      }
-      
       // Import Lucid dynamically
       const { Lucid, Blockfrost } = await import('lucid-cardano');
       
@@ -334,17 +407,43 @@ export class CardanoService {
         'Preprod'
       );
       
+      console.log('📡 Submitting to Cardano network via Blockfrost...');
+      
       // Submit the signed transaction
       const txHash = await lucid.provider.submitTx(signedTx);
       
-      console.log('✅ Transaction submitted successfully!');
+      console.log('✅ Transaction submitted successfully to Cardano blockchain!');
       console.log('Transaction hash:', txHash);
       console.log(`View on explorer: https://preprod.cardanoscan.io/transaction/${txHash}`);
       
       return txHash;
     } catch (error: any) {
       console.error('❌ Transaction submission failed:', error);
-      throw new Error(`Failed to submit transaction: ${error.message}`);
+      
+      // Provide detailed error messages
+      if (error.message?.includes('Invalid project token')) {
+        throw new Error(
+          '❌ Blockfrost API key is invalid.\n\n' +
+          'To enable real transactions:\n' +
+          '1. Get free API key from https://blockfrost.io\n' +
+          '2. Add to frontend/.env:\n' +
+          '   VITE_BLOCKFROST_PROJECT_ID=preprodYourKeyHere\n' +
+          '3. Restart frontend server'
+        );
+      }
+      
+      if (error.message?.includes('insufficient funds')) {
+        throw new Error(
+          '❌ Insufficient funds in wallet.\n\n' +
+          'You need more testnet ADA:\n' +
+          '1. Visit: https://docs.cardano.org/cardano-testnet/tools/faucet/\n' +
+          '2. Request testnet ADA (free)\n' +
+          '3. Wait for confirmation\n' +
+          '4. Try again'
+        );
+      }
+      
+      throw new Error(`❌ Failed to submit transaction to blockchain: ${error.message}`);
     }
   }
 

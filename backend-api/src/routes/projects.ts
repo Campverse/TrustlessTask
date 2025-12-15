@@ -81,18 +81,29 @@ router.post('/:projectId/milestone/:milestoneId/complete', async (req, res) => {
     
     console.log(`📝 Marking milestone ${milestoneId} as complete for project ${projectId}`);
     
-    // Record completion on blockchain if transaction provided
-    let txHash;
-    if (signedTx) {
-      console.log('📤 Simulating completion transaction submission...');
-      // In production, this would submit to blockchain
-      // For now, generate a simulated transaction hash
-      txHash = `tx_complete_${Date.now()}_${milestoneId}`;
-      console.log('✅ Simulated transaction:', txHash);
+    if (!signedTx) {
+      return res.status(400).json({ 
+        error: 'Transaction required',
+        details: 'Real blockchain transaction hash is required to mark milestone as complete. This creates proof of completion on-chain.'
+      });
     }
     
+    // The completion transaction hash is already submitted by the frontend via Lucid
+    // This is a proof-of-completion transaction (1 ADA sent to client with metadata)
+    const txHash = signedTx;
+    
+    console.log('📝 Recording completion transaction on blockchain...');
+    console.log('Transaction hash:', txHash);
+    console.log(`View on explorer: https://preprod.cardanoscan.io/transaction/${txHash}`);
+    
     const result = await ProjectModel.completeMilestone(projectId, parseInt(milestoneId), txHash);
-    res.json(result);
+    
+    res.json({
+      ...result,
+      txHash,
+      explorerUrl: `https://preprod.cardanoscan.io/transaction/${txHash}`,
+      message: 'Milestone marked as complete on Cardano blockchain. Proof-of-completion transaction recorded.'
+    });
   } catch (error: any) {
     console.error('❌ Error completing milestone:', error);
     res.status(400).json({ 
@@ -109,45 +120,29 @@ router.post('/:projectId/milestone/:milestoneId/approve', async (req, res) => {
     
     console.log(`✅ Approving milestone ${milestoneId} for project ${projectId}`);
     
-    let txHash;
-    
-    if (signedTx && signedTx.startsWith('tx_')) {
-      // Simulated transaction
-      txHash = signedTx;
-      console.log('⚠️ Using simulated transaction:', txHash);
-    } else if (signedTx) {
-      // Real signed transaction - submit to blockchain
-      console.log('💰 Submitting real transaction to Cardano blockchain...');
-      console.log('Signed TX length:', signedTx.length);
-      
-      try {
-        // Submit to Blockfrost
-        const blockfrostProjectId = process.env.BLOCKFROST_PROJECT_ID || 'preprodDemo123';
-        const network = process.env.CARDANO_NETWORK?.toLowerCase() || 'preprod';
-        
-        console.log('Using Blockfrost network:', network);
-        
-        // Note: Real submission requires valid Blockfrost API key
-        // For now, we'll generate a realistic-looking tx hash
-        txHash = `${signedTx.substring(0, 64)}`;
-        
-        console.log('✅ Transaction submitted to blockchain');
-        console.log('Transaction hash:', txHash);
-        console.log(`View on explorer: https://${network}.cardanoscan.io/transaction/${txHash}`);
-      } catch (submitError: any) {
-        console.error('❌ Blockchain submission failed:', submitError.message);
-        // Fall back to simulated hash
-        txHash = `tx_approve_${Date.now()}_${milestoneId}`;
-        console.log('⚠️ Using fallback simulated hash:', txHash);
-      }
-    } else {
-      // No transaction provided
-      txHash = `tx_approve_${Date.now()}_${milestoneId}`;
-      console.log('⚠️ No transaction provided, using simulated hash:', txHash);
+    if (!signedTx) {
+      return res.status(400).json({ 
+        error: 'Transaction required',
+        details: 'Real blockchain transaction hash is required. No simulated transactions allowed.'
+      });
     }
     
+    // The transaction hash is already submitted by the frontend via Lucid
+    // We just store it in the database
+    const txHash = signedTx;
+    
+    console.log('💰 Recording blockchain transaction...');
+    console.log('Transaction hash:', txHash);
+    console.log(`View on explorer: https://preprod.cardanoscan.io/transaction/${txHash}`);
+    
     const result = await ProjectModel.approveMilestone(projectId, parseInt(milestoneId), txHash);
-    res.json(result);
+    
+    res.json({
+      ...result,
+      txHash,
+      explorerUrl: `https://preprod.cardanoscan.io/transaction/${txHash}`,
+      message: 'Funds released successfully on Cardano blockchain'
+    });
   } catch (error: any) {
     console.error('❌ Error approving milestone:', error);
     res.status(400).json({ 
