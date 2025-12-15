@@ -28,6 +28,8 @@ interface Milestone {
   deadline: string;
   completed: boolean;
   approved: boolean;
+  completionTxHash?: string;
+  approvalTxHash?: string;
 }
 
 interface User {
