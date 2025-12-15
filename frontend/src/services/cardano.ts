@@ -80,15 +80,17 @@ export interface CardanoWallet {
   submitTx(tx: string): Promise<string>;
 }
 
+export interface CardanoWallets {
+  nami?: CardanoWallet;
+  eternl?: CardanoWallet;
+  flint?: CardanoWallet;
+  lace?: CardanoWallet;
+  [key: string]: CardanoWallet | undefined;
+}
+
 declare global {
   interface Window {
-    cardano?: {
-      nami?: CardanoWallet;
-      eternl?: CardanoWallet;
-      flint?: CardanoWallet;
-      lace?: CardanoWallet;
-      [key: string]: CardanoWallet | undefined;
-    };
+    cardano?: CardanoWallets;
   }
 }
 
