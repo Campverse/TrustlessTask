@@ -2,6 +2,12 @@
 
 A decentralized freelance marketplace built on Cardano blockchain using Plutus smart contracts. Enables trustless collaboration between clients and freelancers through programmable escrow and milestone-based payments.
 
+## 🚀 Quick Deploy
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Campverse/TrustlessTask&project-name=trustlesstask&root-directory=frontend&env=VITE_BLOCKFROST_PROJECT_ID,VITE_NETWORK,VITE_API_URL)
+
+**See [DEPLOY_NOW.md](DEPLOY_NOW.md) for step-by-step deployment instructions.**
+
 ## Features
 
 - **Smart Contract Escrow**: Funds locked in Plutus validators until conditions met
