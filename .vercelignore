@@ -1,0 +1,6 @@
+backend-api
+backend
+contracts
+scripts
+*.md
+!README.md
