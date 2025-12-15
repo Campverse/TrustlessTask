@@ -1,0 +1,26 @@
+{
+  "name": "trustlesstask",
+  "version": "1.0.0",
+  "description": "Decentralized freelance marketplace on Cardano blockchain",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend-api && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend-api && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "install:all": "npm install && cd backend-api && npm install && cd ../frontend && npm install"
+  },
+  "keywords": [
+    "cardano",
+    "blockchain",
+    "freelance",
+    "web3",
+    "plutus"
+  ],
+  "author": "campverse",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
