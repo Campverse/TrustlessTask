@@ -39,8 +39,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ wallet }) 
     return <div className="text-center py-12">Project not found</div>;
   }
 
-  const isClient = wallet.address === project.clientAddress;
-  const isFreelancer = wallet.address === project.freelancerAddress;
+  const isClient = wallet.address && wallet.address === project.clientAddress;
+  const isFreelancer = wallet.address && wallet.address === project.freelancerAddress;
 
   return (
     <div className="max-w-4xl mx-auto">

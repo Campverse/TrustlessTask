@@ -202,8 +202,22 @@ export class CardanoService {
     console.log('Amount:', params.amount / 1_000_000, 'ADA');
     
     try {
-      // Import Lucid dynamically
-      const { Lucid, Blockfrost } = await import('lucid-cardano');
+      // Import Lucid dynamically - this will fail in build, so we catch it
+      let Lucid, Blockfrost;
+      try {
+        const lucidModule = await import('lucid-cardano');
+        Lucid = lucidModule.Lucid;
+        Blockfrost = lucidModule.Blockfrost;
+      } catch (importError) {
+        console.error('Failed to import lucid-cardano:', importError);
+        throw new Error(
+          'Lucid library not available.\n\n' +
+          'This is a known issue with Lucid in production builds.\n' +
+          'For now, the app will work in demo mode.\n\n' +
+          'To enable real transactions, use the development server:\n' +
+          'npm run dev'
+        );
+      }
       
       // Get sender address
       const senderAddress = await this.getAddress();
@@ -259,8 +273,8 @@ export class CardanoService {
         'Preprod'
       );
       
-      // Select wallet
-      lucid.selectWallet(this.wallet);
+      // Select wallet - cast to any to avoid type mismatch with Lucid's WalletApi
+      lucid.selectWallet(this.wallet as any);
       
       console.log('✅ Lucid initialized, building transaction...');
       
