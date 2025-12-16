@@ -2,7 +2,10 @@ import axios from 'axios';
 import type { Project, CreateProjectRequest, UserProfile, Dispute } from '../types';
 import { mockProjects, mockUserProfile } from './mockData';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app') 
+    ? 'https://trustlesstask-1.onrender.com/api/v1'
+    : 'http://localhost:8080/api/v1');
 const USE_MOCK_DATA = false; // Real backend API enabled
 
 const api = axios.create({
