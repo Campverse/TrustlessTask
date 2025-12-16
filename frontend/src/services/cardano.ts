@@ -65,37 +65,8 @@ function hexToAddress(hex: string): string {
   }
 }
 
-export interface CardanoWallet {
-  enable(): Promise<any>;
-  isEnabled(): Promise<boolean>;
-  getNetworkId(): Promise<number>;
-  getUtxos(): Promise<string[]>;
-  getBalance(): Promise<string>;
-  getUsedAddresses(): Promise<string[]>;
-  getUnusedAddresses(): Promise<string[]>;
-  getChangeAddress(): Promise<string>;
-  getRewardAddresses(): Promise<string[]>;
-  signTx(tx: string, partialSign: boolean): Promise<string>;
-  signData(address: string, payload: string): Promise<{ signature: string; key: string }>;
-  submitTx(tx: string): Promise<string>;
-}
-
-export interface CardanoWallets {
-  nami?: CardanoWallet;
-  eternl?: CardanoWallet;
-  flint?: CardanoWallet;
-  lace?: CardanoWallet;
-  [key: string]: CardanoWallet | undefined;
-}
-
-declare global {
-  interface Window {
-    cardano?: CardanoWallets;
-  }
-}
-
 export class CardanoService {
-  private wallet: CardanoWallet | null = null;
+  private wallet: CardanoWalletApi | null = null;
   private blockfrostApiKey: string;
   private network: 'preprod' | 'mainnet';
 
@@ -197,117 +168,142 @@ export class CardanoService {
   }): Promise<string> {
     if (!this.wallet) throw new Error('Wallet not connected');
     
-    console.log('🔨 Building real Cardano transaction with Lucid...');
+    console.log('🔨 Building transaction using Cardano Serialization Library...');
     console.log('Recipient:', params.recipient);
     console.log('Amount:', params.amount / 1_000_000, 'ADA');
     
     try {
-      // Import Lucid dynamically
-      let Lucid, Blockfrost;
-      try {
-        const lucidModule = await import('lucid-cardano');
-        Lucid = lucidModule.Lucid;
-        Blockfrost = lucidModule.Blockfrost;
-      } catch (importError) {
-        console.error('Failed to import lucid-cardano:', importError);
-        throw new Error(
-          'Lucid library not available.\n\n' +
-          'This is a known issue with Lucid in production builds.\n' +
-          'For now, the app will work in demo mode.\n\n' +
-          'To enable real transactions, use the development server:\n' +
-          'npm run dev'
-        );
-      }
+      // Import Cardano serialization library
+      const CSL = await import('@emurgo/cardano-serialization-lib-browser');
       
-      // Get sender address
-      const senderAddress = await this.getAddress();
-      console.log('Sender:', senderAddress);
-      
-      // Check wallet balance
-      const balance = await this.getBalance();
-      console.log('Wallet balance:', balance / 1_000_000, 'ADA');
-      
-      if (balance === 0) {
-        throw new Error(
-          'No funds available in wallet.\n\n' +
-          'To make real blockchain transactions, you need testnet ADA:\n\n' +
-          '1. Visit: https://docs.cardano.org/cardano-testnet/tools/faucet/\n' +
-          '2. Enter your wallet address: ' + senderAddress + '\n' +
-          '3. Request testnet ADA (free)\n' +
-          '4. Wait ~20 seconds for confirmation\n' +
-          '5. Refresh and try again'
-        );
-      }
-      
-      if (balance < params.amount + 2_000_000) {
-        throw new Error(
-          `Insufficient funds.\n\n` +
-          `Required: ${(params.amount + 2_000_000) / 1_000_000} ADA (including fees)\n` +
-          `Available: ${balance / 1_000_000} ADA\n\n` +
-          `Get more testnet ADA from the faucet.`
-        );
-      }
-      
-      // Check for valid Blockfrost API key
+      // Get protocol parameters from Blockfrost
       const blockfrostApiKey = import.meta.env.VITE_BLOCKFROST_PROJECT_ID;
       
       if (!blockfrostApiKey || blockfrostApiKey === 'preprodDemo123') {
         throw new Error(
-          'Valid Blockfrost API key required for real transactions.\n\n' +
-          'Setup instructions:\n' +
-          '1. Get FREE API key from https://blockfrost.io\n' +
-          '2. Create account and new project (Preprod Testnet)\n' +
-          '3. Copy your project ID\n' +
-          '4. Create frontend/.env file:\n' +
-          '   VITE_BLOCKFROST_PROJECT_ID=preprodYourKeyHere\n' +
-          '5. Restart frontend server: npm run dev\n\n' +
-          'Without a valid API key, real blockchain transactions cannot be made.'
+          'Valid Blockfrost API key required.\n\n' +
+          'Get a FREE API key from https://blockfrost.io\n' +
+          'Add to frontend/.env:\n' +
+          'VITE_BLOCKFROST_PROJECT_ID=your_key_here'
         );
       }
       
-      console.log('Initializing Lucid with Blockfrost...');
-      
-      // Initialize Lucid with Blockfrost
-      const lucid = await Lucid.new(
-        new Blockfrost('https://cardano-preprod.blockfrost.io/api/v0', blockfrostApiKey),
-        'Preprod'
+      // Get latest protocol parameters
+      const protocolResponse = await fetch(
+        'https://cardano-preprod.blockfrost.io/api/v0/epochs/latest/parameters',
+        {
+          headers: { 'project_id': blockfrostApiKey },
+        }
       );
       
-      // Select wallet - cast to any to avoid type mismatch with Lucid's WalletApi
-      lucid.selectWallet(this.wallet as any);
+      if (!protocolResponse.ok) {
+        throw new Error('Failed to fetch protocol parameters');
+      }
       
-      console.log('✅ Lucid initialized, building transaction...');
+      const protocolParams = await protocolResponse.json();
+      
+      // Get UTXOs from wallet
+      const utxosHex = await this.wallet.getUtxos();
+      if (!utxosHex || utxosHex.length === 0) {
+        throw new Error('No UTXOs available in wallet');
+      }
+      
+      // Get change address
+      const changeAddressHex = await this.wallet.getChangeAddress();
+      const changeAddressBytes = new Uint8Array(changeAddressHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+      const changeAddress = CSL.Address.from_bytes(changeAddressBytes);
       
       // Build transaction
-      const tx = await lucid
-        .newTx()
-        .payToAddress(params.recipient, { lovelace: BigInt(params.amount) })
-        .attachMetadata(674, params.metadata || {})
-        .complete();
+      const txBuilder = CSL.TransactionBuilder.new(
+        CSL.TransactionBuilderConfigBuilder.new()
+          .fee_algo(
+            CSL.LinearFee.new(
+              CSL.BigNum.from_str(protocolParams.min_fee_a.toString()),
+              CSL.BigNum.from_str(protocolParams.min_fee_b.toString())
+            )
+          )
+          .pool_deposit(CSL.BigNum.from_str(protocolParams.pool_deposit))
+          .key_deposit(CSL.BigNum.from_str(protocolParams.key_deposit))
+          .max_value_size(protocolParams.max_val_size)
+          .max_tx_size(protocolParams.max_tx_size)
+          .coins_per_utxo_byte(CSL.BigNum.from_str(protocolParams.coins_per_utxo_size))
+          .build()
+      );
       
-      console.log('Transaction built, requesting wallet signature...');
+      // Add output
+      const recipientAddress = CSL.Address.from_bech32(params.recipient);
+      txBuilder.add_output(
+        CSL.TransactionOutput.new(
+          recipientAddress,
+          CSL.Value.new(CSL.BigNum.from_str(params.amount.toString()))
+        )
+      );
       
-      // Sign transaction
-      const signedTx = await tx.sign().complete();
+      // Add metadata if provided
+      if (params.metadata) {
+        const metadata = CSL.GeneralTransactionMetadata.new();
+        const metadataJson = CSL.encode_json_str_to_metadatum(
+          JSON.stringify(params.metadata),
+          CSL.MetadataJsonSchema.BasicConversions
+        );
+        metadata.insert(CSL.BigNum.from_str('674'), metadataJson);
+        
+        const auxData = CSL.AuxiliaryData.new();
+        auxData.set_metadata(metadata);
+        txBuilder.set_auxiliary_data(auxData);
+      }
+      
+      // Add inputs from UTXOs
+      const txUnspentOutputs = CSL.TransactionUnspentOutputs.new();
+      for (const utxoHex of utxosHex) {
+        const utxoBytes = new Uint8Array(utxoHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+        const utxo = CSL.TransactionUnspentOutput.from_bytes(utxoBytes);
+        txUnspentOutputs.add(utxo);
+      }
+      
+      txBuilder.add_inputs_from(txUnspentOutputs, CSL.CoinSelectionStrategyCIP2.LargestFirstMultiAsset);
+      
+      // Add change
+      txBuilder.add_change_if_needed(changeAddress);
+      
+      // Build transaction body
+      const txBody = txBuilder.build();
+      
+      // Create witness set placeholder
+      const witnessSet = CSL.TransactionWitnessSet.new();
+      
+      // Create transaction
+      const transaction = CSL.Transaction.new(
+        txBody,
+        witnessSet,
+        txBuilder.get_auxiliary_data()
+      );
+      
+      // Convert to hex for wallet signing
+      const txBytes = transaction.to_bytes();
+      const txHex = Array.from(txBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      // Sign with wallet
+      console.log('Requesting wallet signature...');
+      const witnessSetHex = await this.wallet.signTx(txHex, true);
+      
+      // Combine transaction with witnesses
+      const witnessSetBytes = new Uint8Array(witnessSetHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+      const witnessSetSigned = CSL.TransactionWitnessSet.from_bytes(witnessSetBytes);
+      const signedTx = CSL.Transaction.new(
+        transaction.body(),
+        witnessSetSigned,
+        transaction.auxiliary_data()
+      );
       
       console.log('✅ Transaction signed successfully');
       
       // Return signed transaction as hex
-      return signedTx.toString();
+      const signedTxBytes = signedTx.to_bytes();
+      return Array.from(signedTxBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      
     } catch (error: any) {
       console.error('❌ Failed to build transaction:', error);
-      
-      if (error.message?.includes('Invalid project token')) {
-        throw new Error(
-          'Blockfrost API key is invalid.\n\n' +
-          'To enable real transactions:\n' +
-          '1. Get free API key from https://blockfrost.io\n' +
-          '2. Add to frontend/.env:\n' +
-          '   VITE_BLOCKFROST_PROJECT_ID=preprodYourKeyHere\n' +
-          '3. Restart frontend server'
-        );
-      }
-      
       throw error;
     }
   }
@@ -392,58 +388,44 @@ export class CardanoService {
         '3. Copy your project ID\n' +
         '4. Add to frontend/.env:\n' +
         '   VITE_BLOCKFROST_PROJECT_ID=preprodYourKeyHere\n' +
-        '5. Restart frontend server: npm run dev\n\n' +
+        '5. Restart server\n\n' +
         'Without a valid API key, real blockchain transactions cannot be made.'
       );
     }
     
     try {
-      // Import Lucid dynamically
-      const { Lucid, Blockfrost } = await import('lucid-cardano');
-      
-      // Initialize Lucid with Blockfrost
-      const lucid = await Lucid.new(
-        new Blockfrost('https://cardano-preprod.blockfrost.io/api/v0', blockfrostApiKey),
-        'Preprod'
-      );
-      
       console.log('📡 Submitting to Cardano network via Blockfrost...');
       
-      // Submit the signed transaction
-      const txHash = await lucid.provider.submitTx(signedTx);
+      // Submit transaction to Blockfrost
+      const txBytes = new Uint8Array(signedTx.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+      const response = await fetch(
+        'https://cardano-preprod.blockfrost.io/api/v0/tx/submit',
+        {
+          method: 'POST',
+          headers: {
+            'project_id': blockfrostApiKey,
+            'Content-Type': 'application/cbor',
+          },
+          body: txBytes,
+        }
+      );
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Transaction submission failed: ${error}`);
+      }
+      
+      const txHash = await response.text();
       
       console.log('✅ Transaction submitted successfully to Cardano blockchain!');
       console.log('Transaction hash:', txHash);
       console.log(`View on explorer: https://preprod.cardanoscan.io/transaction/${txHash}`);
       
       return txHash;
+      
     } catch (error: any) {
       console.error('❌ Transaction submission failed:', error);
-      
-      // Provide detailed error messages
-      if (error.message?.includes('Invalid project token')) {
-        throw new Error(
-          '❌ Blockfrost API key is invalid.\n\n' +
-          'To enable real transactions:\n' +
-          '1. Get free API key from https://blockfrost.io\n' +
-          '2. Add to frontend/.env:\n' +
-          '   VITE_BLOCKFROST_PROJECT_ID=preprodYourKeyHere\n' +
-          '3. Restart frontend server'
-        );
-      }
-      
-      if (error.message?.includes('insufficient funds')) {
-        throw new Error(
-          '❌ Insufficient funds in wallet.\n\n' +
-          'You need more testnet ADA:\n' +
-          '1. Visit: https://docs.cardano.org/cardano-testnet/tools/faucet/\n' +
-          '2. Request testnet ADA (free)\n' +
-          '3. Wait for confirmation\n' +
-          '4. Try again'
-        );
-      }
-      
-      throw new Error(`❌ Failed to submit transaction to blockchain: ${error.message}`);
+      throw new Error(`Failed to submit transaction: ${error.message}`);
     }
   }
 

@@ -308,7 +308,7 @@
       "clientAddress": "addr_test1qq0les3t7k0dh37pta065hzc0ylwt8jfr55d2ztgpkdgnke84487c6n5z0ahj7pmy4fxes0arkk0hzwvdrhem749nxzsxr83pf",
       "freelancerAddress": "addr_test1qpwavdwzc4sku4prg3ghsmnqkly7lkazckzx6zuuar5whetpzv0hx5undxl9dd4sfd2dse86ndg73fcxale46rx063esrlm6xk",
       "totalAmount": 1000000,
-      "status": "InProgress",
+      "status": "Completed",
       "createdAt": "2025-12-15T16:13:08.298Z",
       "txHash": "tx_1765815188298_r5ur8se00",
       "milestones": [
@@ -318,8 +318,9 @@
           "amount": 1000000,
           "deadline": "2025-12-31T22:19",
           "completed": true,
-          "approved": false,
-          "completionTxHash": "4b32209116882ffc501ff45c038fb6efa6694c21e9107b38eca151941b6cd72f"
+          "approved": true,
+          "completionTxHash": "4b32209116882ffc501ff45c038fb6efa6694c21e9107b38eca151941b6cd72f",
+          "approvalTxHash": "\"ad16a845791430dceb875be6060e61694dbda2912c0fead7a940c5569bbcbee2\""
         }
       ]
     }
