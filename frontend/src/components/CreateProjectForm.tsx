@@ -100,71 +100,71 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onSubmit, 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       <div>
-        <label className="block text-sm font-medium mb-2">Project Title</label>
+        <label className="block text-xs sm:text-sm font-medium mb-2">Project Title</label>
         <input
           type="text"
           required
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-blue-500"
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">Description</label>
+        <label className="block text-xs sm:text-sm font-medium mb-2">Description</label>
         <textarea
           required
           rows={4}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-blue-500"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">Freelancer Address</label>
+        <label className="block text-xs sm:text-sm font-medium mb-2">Freelancer Address</label>
         <input
           type="text"
           required
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
           value={formData.freelancerAddress}
           onChange={(e) => setFormData({ ...formData, freelancerAddress: e.target.value })}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">Arbiter Address (Optional)</label>
+        <label className="block text-xs sm:text-sm font-medium mb-2">Arbiter Address (Optional)</label>
         <input
           type="text"
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
           value={formData.arbiterAddress}
           onChange={(e) => setFormData({ ...formData, arbiterAddress: e.target.value })}
         />
       </div>
 
       <div>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Milestones</h3>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+          <h3 className="text-base sm:text-lg font-semibold">Milestones</h3>
           <button
             type="button"
             onClick={addMilestone}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Add Milestone
           </button>
         </div>
 
         {milestones.map((milestone, index) => (
-          <div key={index} className="border rounded-lg p-4 mb-4">
+          <div key={index} className="border rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
             <div className="flex justify-between items-center mb-3">
-              <h4 className="font-medium">Milestone {index + 1}</h4>
+              <h4 className="font-medium text-sm sm:text-base">Milestone {index + 1}</h4>
               {milestones.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeMilestone(index)}
-                  className="text-red-600 hover:text-red-800"
+                  className="text-xs sm:text-sm text-red-600 hover:text-red-800"
                 >
                   Remove
                 </button>
@@ -176,7 +176,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onSubmit, 
                 type="text"
                 placeholder="Description"
                 required
-                className="w-full px-3 py-2 border rounded"
+                className="w-full px-3 py-2 text-sm sm:text-base border rounded"
                 value={milestone.description}
                 onChange={(e) => updateMilestone(index, 'description', e.target.value)}
               />
@@ -185,7 +185,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onSubmit, 
                 placeholder="Amount (lovelace)"
                 required
                 min="1000000"
-                className="w-full px-3 py-2 border rounded"
+                className="w-full px-3 py-2 text-sm sm:text-base border rounded"
                 value={milestone.amount || ''}
                 onChange={(e) => {
                   const value = parseInt(e.target.value);
@@ -195,7 +195,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onSubmit, 
               <input
                 type="datetime-local"
                 required
-                className="w-full px-3 py-2 border rounded"
+                className="w-full px-3 py-2 text-sm sm:text-base border rounded"
                 value={milestone.deadline}
                 onChange={(e) => updateMilestone(index, 'deadline', e.target.value)}
               />
@@ -206,7 +206,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onSubmit, 
 
       <button
         type="submit"
-        className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+        className="w-full py-3 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
       >
         Create Project
       </button>

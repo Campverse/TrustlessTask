@@ -16,22 +16,22 @@ export const ProjectsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="text-center py-12">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p className="mt-4 text-gray-600">Loading projects...</p>
+      <div className="text-center py-12 px-4">
+        <div className="inline-block animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
+        <p className="mt-4 text-sm sm:text-base text-gray-600">Loading projects...</p>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="text-center py-12">
-        <div className="bg-red-100 text-red-700 p-6 rounded-lg max-w-md mx-auto">
-          <h2 className="text-xl font-semibold mb-2">Failed to load projects</h2>
-          <p className="text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+      <div className="text-center py-12 px-4">
+        <div className="bg-red-100 text-red-700 p-4 sm:p-6 rounded-lg max-w-md mx-auto">
+          <h2 className="text-lg sm:text-xl font-semibold mb-2">Failed to load projects</h2>
+          <p className="text-xs sm:text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            className="mt-4 px-4 py-2 text-sm sm:text-base bg-red-600 text-white rounded hover:bg-red-700"
           >
             Retry
           </button>
@@ -41,19 +41,19 @@ export const ProjectsPage: React.FC = () => {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">All Projects</h1>
+    <div className="px-4 sm:px-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold">All Projects</h1>
         <button
           onClick={() => navigate('/create')}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="w-full sm:w-auto px-6 py-3 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           Create New Project
         </button>
       </div>
 
       {projects && projects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {projects.map((project) => (
             <ProjectCard
               key={project.id}
@@ -63,7 +63,7 @@ export const ProjectsPage: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-sm sm:text-base text-gray-500">
           No projects found. Create your first project!
         </div>
       )}

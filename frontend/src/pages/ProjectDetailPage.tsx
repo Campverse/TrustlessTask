@@ -156,110 +156,110 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ wallet }) 
   });
 
   if (isLoading) {
-    return <div className="text-center py-12">Loading project...</div>;
+    return <div className="text-center py-12 text-sm sm:text-base">Loading project...</div>;
   }
 
   if (!project) {
-    return <div className="text-center py-12">Project not found</div>;
+    return <div className="text-center py-12 text-sm sm:text-base">Project not found</div>;
   }
 
   const isClient = wallet.address && wallet.address === project.clientAddress;
   const isFreelancer = wallet.address && wallet.address === project.freelancerAddress;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-8 mb-6">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
-            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-8 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">{project.title}</h1>
+            <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm">
               {project.status}
             </span>
           </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-blue-600">
+          <div className="text-left sm:text-right">
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">
               {(project.totalAmount / 1_000_000).toFixed(2)} ₳
             </div>
-            <div className="text-sm text-gray-500">Total Amount</div>
+            <div className="text-xs sm:text-sm text-gray-500">Total Amount</div>
           </div>
         </div>
 
-        <p className="text-gray-700 mb-6">{project.description}</p>
+        <p className="text-sm sm:text-base text-gray-700 mb-6">{project.description}</p>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <div>
-            <div className="text-sm text-gray-500">Client</div>
-            <div className="font-mono text-sm">
+            <div className="text-xs sm:text-sm text-gray-500">Client</div>
+            <div className="font-mono text-xs sm:text-sm break-all">
               {project.clientAddress.slice(0, 20)}...
             </div>
           </div>
           <div>
-            <div className="text-sm text-gray-500">Freelancer</div>
-            <div className="font-mono text-sm">
+            <div className="text-xs sm:text-sm text-gray-500">Freelancer</div>
+            <div className="font-mono text-xs sm:text-sm break-all">
               {project.freelancerAddress.slice(0, 20)}...
             </div>
           </div>
         </div>
 
         {project.txHash && (
-          <div className="text-sm text-gray-500">
+          <div className="text-xs sm:text-sm text-gray-500 break-all">
             Transaction: <span className="font-mono">{project.txHash}</span>
           </div>
         )}
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-8">
-        <h2 className="text-2xl font-bold mb-6">Milestones</h2>
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-8">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Milestones</h2>
 
         <div className="space-y-4">
           {project.milestones.map((milestone) => (
-            <div key={milestone.id} className="border rounded-lg p-6">
-              <div className="flex justify-between items-start mb-4">
+            <div key={milestone.id} className="border rounded-lg p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-2">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">
                     Milestone {milestone.id}
                   </h3>
-                  <p className="text-gray-600">{milestone.description}</p>
+                  <p className="text-sm sm:text-base text-gray-600">{milestone.description}</p>
                 </div>
-                <div className="text-right ml-4">
-                  <div className="text-xl font-bold text-blue-600">
+                <div className="text-left sm:text-right sm:ml-4">
+                  <div className="text-lg sm:text-xl font-bold text-blue-600">
                     {(milestone.amount / 1_000_000).toFixed(2)} ₳
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-xs sm:text-sm text-gray-500">
                     Due: {format(new Date(milestone.deadline), 'MMM dd, yyyy')}
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4">
                 <div className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     checked={milestone.completed}
                     disabled
-                    className="w-5 h-5"
+                    className="w-4 h-4 sm:w-5 sm:h-5"
                     readOnly
                   />
-                  <span className="text-sm">Completed</span>
+                  <span className="text-xs sm:text-sm">Completed</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     checked={milestone.approved}
                     disabled
-                    className="w-5 h-5"
+                    className="w-4 h-4 sm:w-5 sm:h-5"
                     readOnly
                   />
-                  <span className="text-sm">Approved</span>
+                  <span className="text-xs sm:text-sm">Approved</span>
                 </div>
               </div>
 
-              <div className="mt-4 flex space-x-3">
+              <div className="mt-4 flex flex-col sm:flex-row gap-3">
                 {isFreelancer && !milestone.completed && (
                   <button
                     onClick={() => completeMutation.mutate({ milestoneId: milestone.id })}
                     disabled={completeMutation.isPending}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                    className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
                   >
                     Mark Complete
                   </button>
@@ -269,14 +269,14 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ wallet }) 
                   <button
                     onClick={() => approveMutation.mutate({ milestoneId: milestone.id })}
                     disabled={approveMutation.isPending}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                    className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                   >
                     Approve & Release Funds
                   </button>
                 )}
 
                 {milestone.approved && (
-                  <span className="px-4 py-2 bg-green-100 text-green-800 rounded">
+                  <span className="w-full sm:w-auto text-center px-4 py-2 text-sm sm:text-base bg-green-100 text-green-800 rounded">
                     ✓ Funds Released
                   </span>
                 )}
