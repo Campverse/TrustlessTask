@@ -415,7 +415,9 @@ export class CardanoService {
         throw new Error(`Transaction submission failed: ${error}`);
       }
       
-      const txHash = await response.text();
+      // Blockfrost returns the tx hash as a JSON string with quotes
+      const txHashRaw = await response.text();
+      const txHash = txHashRaw.replace(/"/g, ''); // Remove quotes
       
       console.log('✅ Transaction submitted successfully to Cardano blockchain!');
       console.log('Transaction hash:', txHash);
